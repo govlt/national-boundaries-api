@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
     outputs:
       digest: ${{ steps.docker.outputs.digest }}
     steps:
@@ -34,3 +36,10 @@ jobs:
           push: true
           cache-from: ''
           cache-to: ''
+
+      - name: Generate docker image attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/govlt/national-boundaries-api
+          subject-digest: ${{ steps.docker.outputs.digest }}
+          push-to-registry: true
