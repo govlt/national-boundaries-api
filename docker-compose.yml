@@ -1,0 +1,19 @@
+name: national-boundaries-api-local
+
+services:
+  national-boundaries-api:
+    build: .
+    platform: linux/amd64
+    pull_policy: build
+    restart: unless-stopped
+    networks:
+      - internal
+    ports:
+      - 9321:80
+    environment:
+      ROOT_URL: ''
+      SENTRY_DSN: ''
+      SENTRY_ENVIRONMENT: 'local'
+
+networks:
+  internal:

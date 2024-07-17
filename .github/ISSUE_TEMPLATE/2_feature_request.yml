@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a new idea
+labels:
+  - feature
+body:
+  - type: textarea
+    attributes:
+      label: Use case
+      description: |
+        Please tell us the problem you are running into that led to you wanting a new feature.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposal
+      description: |
+        Briefly but precisely describe what you would like National Boundaries and Addresses API to be able to do.
+
+        Consider attaching something showing what you are imagining such as images or URLs from other base maps.
+    validations:
+      required: true

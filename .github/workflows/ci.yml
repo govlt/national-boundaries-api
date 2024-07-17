@@ -1,0 +1,39 @@
+name: Continuous integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  actionlint:
+    name: Lint GitHub Actions workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check workflow files
+        run: |
+          echo "::add-matcher::.github/actionlint-matcher.json"
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
+        shell: bash
+
+  validate-api-docker-build:
+    name: Validate if docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build & tag docker image
+        uses: AplinkosMinisterija/reusable-workflows/.github/actions/docker-build-tag-push@main
+        with:
+          environment: test
+          file: Dockerfile
+          push: false

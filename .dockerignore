@@ -1,0 +1,5 @@
+Dockerfile
+boundaries.sqlite
+mod_spatialite.dylib
+.gitignore
+__pycache__
