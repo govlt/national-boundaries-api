@@ -28,6 +28,8 @@ jobs:
     name: Validate if docker image builds
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,6 +45,8 @@ jobs:
     name: Generate ReDoc
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,7 +77,6 @@ jobs:
           path: openapi.json
           if-no-files-found: error
 
-
       - name: Upload redoc-static.html artifact
         uses: actions/upload-artifact@v4
         with:
@@ -81,3 +84,15 @@ jobs:
           path: redoc-static.html
           if-no-files-found: error
 
+      - name: Create dist folder with files
+        run: |
+          mkdir dist
+          cp redoc-static.html dist/index.html
+          cp openapi.yaml openapi.json dist
+
+      - name: Upload to Cloudflare pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=national-boundaries-api
