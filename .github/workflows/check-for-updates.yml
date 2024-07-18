@@ -13,6 +13,9 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+    outputs:
+      create-release: ${{ !steps.comparison.outputs.passed }}
+      diff: ${{ steps.comparison.outputs.output }}
     steps:
       - name: Install csvkit
         run: apt-get update && apt-get install -y csvkit
@@ -75,6 +78,35 @@ jobs:
         if: ${{ steps.comparison.outputs.passed }}
         run: echo "Do not create release"
 
+
+  create-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    concurrency: check-for-data-source-updates-create-release
+    needs:
+      - check-for-updates
+    if: needs.check-for-updates.outputs.create-release
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
       - name: Create release
         if: ${{ !steps.comparison.outputs.passed }}
-        run: echo "Create release"
+        run: echo "Create release with $DIFF"
+        env:
+          DIFF: ${{ needs.check-for-updates.outputs.diff }}
+
+      - name: Create changelog
+        run: |
+          echo "Automated release after data source update\n" >> changelog.txt
+          echo "```${DIFF}```" >> changelog.txt
+        env:
+          DIFF: ${{ needs.check-for-updates.outputs.diff }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ !steps.comparison.outputs.passed }}
+        with:
+          body_path: changelog.txt
+          draft: true
+          tag_name: 1.1.0
