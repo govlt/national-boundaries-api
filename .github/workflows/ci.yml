@@ -24,6 +24,19 @@ jobs:
           ./actionlint -color
         shell: bash
 
+  ruff-check:
+    name: Ruff lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint using ruff
+        uses: chartboost/ruff-action@v1
+
   validate-api-docker-build:
     name: Validate if docker image builds
     runs-on: ubuntu-latest
