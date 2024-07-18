@@ -4,6 +4,13 @@ description: Setup python, poetry, SpatialLite and install dependencies
 runs:
   using: composite
   steps:
+    - name: Install spatialLite
+      run: |
+        apt-get update && apt-get install -y \
+          spatialite-bin \
+          libsqlite3-mod-spatialite
+      shell: bash
+
     - name: Install poetry
       uses: abatilo/actions-poetry@v2
       with:
