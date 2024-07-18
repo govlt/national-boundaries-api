@@ -31,18 +31,13 @@ app = FastAPI(
                 '[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.lt). For more information, '
                 'visit [Registrų centras](https://www.registrucentras.lt/p/1187).',
     version="0.0.1",
-    terms_of_service="https://www.registrucentras.lt/p/1187",
+    terms_of_service="https://github.com/govlt/national-boundaries-api#license",
     docs_url="/",
     contact={
         "name": "Karolis Vyčius",
         "url": "https://vycius.lt/",
         "email": "karolis@vycius.lt",
-    },
-    license_info={
-        "name": "MIT for API and CC BY 4.0 for data",
-        "url": "https://github.com/govlt/national-boundaries-api#license",
-        "identifier": "CC-BY-4.0",
-    },
+    }
 )
 
 app.include_router(

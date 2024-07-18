@@ -27,6 +27,9 @@ jobs:
   validate-api-docker-build:
     name: Validate if docker image builds
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,3 +40,59 @@ jobs:
           environment: test
           file: Dockerfile
           push: false
+
+  generate-redoc:
+    name: Generate ReDoc
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare-python-environment
+
+      - name: Generate openapi.json
+        run: poetry run python src/extract-openapi.py src.main:app --out openapi.json
+
+      - name: Generate openapi.yaml
+        run: poetry run python src/extract-openapi.py src.main:app --out openapi.yaml
+
+      - name: Generate ReDoc html
+        run: npx @redocly/cli build-docs openapi.yaml
+
+      - name: Upload openapi.yaml artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi.yaml
+          path: openapi.yaml
+          if-no-files-found: error
+
+      - name: Upload openapi.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi.json
+          path: openapi.json
+          if-no-files-found: error
+
+      - name: Upload redoc-static.html artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redoc-static.html
+          path: redoc-static.html
+          if-no-files-found: error
+
+      - name: Create dist folder with files
+        run: |
+          mkdir dist
+          cp redoc-static.html dist/index.html
+          cp openapi.yaml openapi.json dist
+
+      - name: Upload to Cloudflare pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=national-boundaries-api --commit-dirty=true

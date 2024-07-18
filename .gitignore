@@ -184,3 +184,7 @@ fabric.properties
 boundaries.sqlite
 mod_spatialite.dylib
 data-sources/
+
+/openapi.json
+/openapi.yaml
+/redoc-static.html
