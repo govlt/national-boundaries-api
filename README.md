@@ -63,14 +63,18 @@ To embark on your development journey, follow these simple steps:
 
 - **Install Python 3.12+:** [Download Python](https://www.python.org/downloads/)
 - **Install Poetry 1.8+:** [Download Poetry](https://python-poetry.org/docs/#installation)
+- **Install SpatialLite 5+**: [Download SpatialLite](https://www.gaia-gis.it/fossil/libspatialite/index)
 - **Install GDAL 3.9+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
   your computer)
 
 After setting up a Python virtual environment and installing dependencies with Poetry, create the database by
-executing `create-database.sh`. Then, run the development API:
+executing `create-database.sh`.
+
+To run the development API, execute the following command (change SPATIALITE_LIBRARY_PATH to the path of SpatialLite on
+your computer):
 
 ```shell
-python -m uvicorn src.main:app --reload
+SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" python -m uvicorn src.main:app --reload
 ```
 
 ## License
