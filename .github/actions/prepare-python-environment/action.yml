@@ -16,6 +16,6 @@ runs:
         cache: poetry
 
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --no-root
       shell: bash
 

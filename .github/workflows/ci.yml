@@ -50,11 +50,11 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare-python-environment
 
-      - name: Generate openapi.yaml
-        run: python src/extract-openapi.py src.main:app --out openapi.yaml
-
       - name: Generate openapi.json
         run: python src/extract-openapi.py src.main:app --out openapi.json
+
+      - name: Generate openapi.yaml
+        run: python src/extract-openapi.py src.main:app --out openapi.yaml
 
       - name: Generate ReDoc html
         run: npx @redocly/cli build-docs openapi.yaml
