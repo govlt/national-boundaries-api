@@ -24,6 +24,32 @@ jobs:
           ./actionlint -color
         shell: bash
 
+  ruff-check:
+    name: Ruff lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare-python-environment
+
+      - name: Lint using ruff
+        run: poetry run ruff check src --output-format sarif --output-file ruff-results.sarif --target-version py312
+        continue-on-error: true
+
+      - name: Upload ESLint analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ruff-results.sarif
+          wait-for-processing: true
+          category: ruff
+
   validate-api-docker-build:
     name: Validate if docker image builds
     runs-on: ubuntu-latest
