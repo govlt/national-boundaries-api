@@ -11,12 +11,12 @@ on:
 permissions: { }
 
 jobs:
-  publish-api-docker-image:
-    name: Publish API docker image
+  publish-docker-image:
+    name: Publish docker image
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: read
+      contents: write
       packages: write
       id-token: write
       attestations: write
@@ -43,3 +43,38 @@ jobs:
           subject-name: ghcr.io/govlt/national-boundaries-api
           subject-digest: ${{ steps.docker.outputs.digest }}
           push-to-registry: true
+
+      - name: Extract files from Docker image
+        uses: shrink/actions-docker-extract@v3
+        id: extract
+        with:
+          image: ghcr.io/govlt/national-boundaries-api@${{ steps.docker.outputs.digest }}
+          path: /opt/app/.
+          destination: app
+
+      - run: ls -lah
+
+      - run: ls -lah app
+
+      - name: Upload boundaries.sqlite artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundaries.sqlite
+          path: app/boundaries.sqlite
+          if-no-files-found: error
+
+      - name: Upload data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: app/data-source-checksums.txt
+          if-no-files-found: error
+
+      - name: Upload artifacts to GitHub release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            app/boundaries.sqlite
+            app/data-source-checksums.txt
+

@@ -48,7 +48,7 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY src/ src/
 COPY --chmod=555 entrypoint.sh /opt/app/entrypoint.sh
 
-COPY --from=database-builder --chmod=444 /opt/database/boundaries.sqlite /opt/database/data-sources/checksums.txt ./
+COPY --from=database-builder --chmod=444 /opt/database/boundaries.sqlite /opt/database/data-sources/data-source-checksums.txt ./
 
 
 ENTRYPOINT ["/opt/app/entrypoint.sh"]
