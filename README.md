@@ -55,7 +55,8 @@ Additional docker image environment options:
 ### SQLite Database
 
 Optionally, use the SQLite database with all boundaries and addresses directly without running the
-national-boundaries-api. Download the latest database version [here](TODO).
+national-boundaries-api. Download the latest database
+version [here](https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite).
 
 ## Getting Started Development
 
@@ -67,14 +68,20 @@ To embark on your development journey, follow these simple steps:
 - **Install GDAL 3.9+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
   your computer)
 
-After setting up a Python virtual environment and installing dependencies with Poetry, create the database by
-executing `create-database.sh`.
+### Setup
 
-To run the development API, execute the following command (change SPATIALITE_LIBRARY_PATH to the path of SpatialLite on
-your computer):
+1. Set up a Python virtual environment.
+2. Install dependencies with Poetry.
+3. Create the database by running `create-database.sh` or download the database file
+   from [this link](https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite) and
+   place it in the project root directory.
+
+### Run the Development API
+
+Execute the following command, replacing `SPATIALITE_LIBRARY_PATH` with the path to SpatialLite on your computer:
 
 ```shell
-SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" python -m uvicorn src.main:app --reload
+SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" poetry run python -m uvicorn src.main:app --reload
 ```
 
 ## License
