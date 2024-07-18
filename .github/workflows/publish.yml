@@ -49,7 +49,7 @@ jobs:
         id: extract
         with:
           image: ghcr.io/govlt/national-boundaries-api@${{ steps.docker.outputs.digest }}
-          path: /opt/app
+          path: /opt/app/.
           destination: app
 
       - run: ls -lah
