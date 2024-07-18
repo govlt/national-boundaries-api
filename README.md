@@ -45,12 +45,12 @@ services:
 
 Additional docker image environment options:
 
-| Environment Variable | Default Value  | Description                                                                                                                                                                 |
-|----------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SENTRY_DSN`         | ``             | The DSN for Sentry, used for error tracking and monitoring. Leave empty if Sentry is not used.                                                                              |
-| `SENTRY_ENVIRONMENT` | `"production"` | Specifies the environment for Sentry (e.g., production, staging, development).                                                                                              |
-| `ROOT_URL`           | ``             | The root URL of the application. Only change if the application is mounted below a specific URL path.                                                                       |
-| `WORKERS`            | `1`            | If you have a cluster of machines with Kubernetes, Docker Swarm, or another similar system, handle replication at the cluster level and keep a single worker per container. |
+| Environment Variable | Description                                                                                                                                                                                                                                                                  | Default Value |
+|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| `SENTRY_DSN`         | The DSN for Sentry, used for error tracking and monitoring. Leave empty if Sentry is not used.                                                                                                                                                                               |               |
+| `SENTRY_ENVIRONMENT` | Specifies the environment for Sentry (e.g., production, staging, development).                                                                                                                                                                                               | `production`  |
+| `ROOT_URL`           | The root URL of the application. Only change if the application is mounted below a specific URL path.                                                                                                                                                                        |               |
+| `WORKERS`            | The number of Uvicorn worker processes to run. Adjust based on workload and available resources. If you have a cluster of machines with Kubernetes, Docker Swarm, or another similar system, handle replication at the cluster level and keep a single worker per container. | `1`           |
 
 ### SQLite Database
 
