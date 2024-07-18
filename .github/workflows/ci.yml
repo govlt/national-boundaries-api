@@ -41,6 +41,7 @@ jobs:
 
       - name: Lint using ruff
         run: poetry run ruff check src --output-format sarif --output-file ruff-results.sarif --target-version py312
+        continue-on-error: true
 
       - name: Upload ESLint analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v2
