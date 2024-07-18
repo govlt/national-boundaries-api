@@ -6,7 +6,7 @@ runs:
   steps:
     - name: Install spatialLite
       run: |
-        apt-get update && apt-get install -y \
+        sudo apt-get update && sudo apt-get install -y \
           spatialite-bin \
           libsqlite3-mod-spatialite
       shell: bash
