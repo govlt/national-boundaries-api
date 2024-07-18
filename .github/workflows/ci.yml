@@ -36,11 +36,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare environment
+        uses: ./.github/actions/prepare-python-environment
+
       - name: Lint using ruff
-        uses: chartboost/ruff-action@v1
-        with:
-          src: './src'
-          args: 'check --output-format sarif --output-file ruff-results.sarif'
+        run: poetry run ruff check src --output-format sarif --output-file ruff-results.sarif --target-version py312
 
       - name: Upload ESLint analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v2
