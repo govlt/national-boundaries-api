@@ -61,7 +61,7 @@ jobs:
         run: poetry run python src/extract-openapi.py src.main:app --out openapi.yaml
 
       - name: Generate ReDoc html
-        run: npx @redocly/cli build-docs openapi.yaml
+        run: npx @redocly/cli build-docs openapi.yaml --theme.openapi.jsonSampleExpandLevel all
 
       - name: Upload openapi.yaml artifact
         uses: actions/upload-artifact@v4
