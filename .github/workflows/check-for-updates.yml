@@ -37,6 +37,35 @@ jobs:
           new: data-sources/data-source-checksums.txt
           mode: strict
           tolerance: same
+          output: data-source-checksums-diff.txt
+
+      - name: Upload published-data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-data-source-checksums.txt
+          path: published-data-source-checksums.txt
+          if-no-files-found: error
+
+      - name: Upload data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: data-source-checksums.txt
+          if-no-files-found: error
+
+      - name: Upload data-source-checksums-diff.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums-diff.txt
+          path: data-source-checksums-diff.txt
+          if-no-files-found: error
+
+      - name: Upload data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: app/data-source-checksums.txt
+          if-no-files-found: error
 
       - name: Output result
         run: |
