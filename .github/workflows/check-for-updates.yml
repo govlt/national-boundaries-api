@@ -32,6 +32,9 @@ jobs:
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
 
+      - name: TODO remove
+        run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
+
       - name: Check that the files are the exact same
         id: comparison
         uses: LouisBrunner/diff-action@v2.0.0
