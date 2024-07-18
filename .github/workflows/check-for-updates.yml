@@ -29,11 +29,25 @@ jobs:
       - name: Create database
         run: ./create-database.sh
 
+      - name: Upload data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: data-sources/data-source-checksums.txt
+          if-no-files-found: error
+
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
 
       - name: TODO remove
         run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
+
+      - name: Upload published-data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-data-source-checksums.txt
+          path: published-data-source-checksums.txt
+          if-no-files-found: error
 
       - name: Check that the files are the exact same
         id: comparison
@@ -45,32 +59,11 @@ jobs:
           tolerance: same
           output: data-source-checksums-diff.txt
 
-      - name: Upload published-data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: published-data-source-checksums.txt
-          path: published-data-source-checksums.txt
-          if-no-files-found: error
-
-      - name: Upload data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-source-checksums.txt
-          path: data-source-checksums.txt
-          if-no-files-found: error
-
       - name: Upload data-source-checksums-diff.txt artifact
         uses: actions/upload-artifact@v4
         with:
           name: data-source-checksums-diff.txt
           path: data-source-checksums-diff.txt
-          if-no-files-found: error
-
-      - name: Upload data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-source-checksums.txt
-          path: app/data-source-checksums.txt
           if-no-files-found: error
 
       - name: Output result
