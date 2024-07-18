@@ -288,7 +288,7 @@ def rooms_search(
     response_description="Details of the room with the specified code.",
     generate_unique_id_function=lambda route: "rooms-get"
 )
-def get(
+def rooms_get(
         code: int = Path(
             description="The code of the room to retrieve",
             openapi_examples={
