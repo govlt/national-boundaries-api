@@ -56,7 +56,6 @@ jobs:
           old: published-data-source-checksums.txt
           new: data-sources/data-source-checksums.txt
           mode: strict
-          tolerance: same
           output: data-source-checksums-diff.txt
 
       - name: Upload data-source-checksums-diff.txt artifact
