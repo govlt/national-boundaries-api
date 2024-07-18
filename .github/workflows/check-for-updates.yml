@@ -1,0 +1,48 @@
+name: Check for data source updates
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  check-for-updates:
+    name: Check for updates
+    runs-on: ubuntu-latest
+    container: ghcr.io/osgeo/gdal:ubuntu-full-3.9.1
+    concurrency: check-for-data-source-updates
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make create-database.sh executable
+        run: chmod +x create-database.sh
+
+      - name: Create database
+        run: ./create-database.sh
+
+      - name: Download latest data source hashes
+        run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
+
+      - name: Check that the files are the exact same
+        id: comparison
+        uses: LouisBrunner/diff-action@v2.0.0
+        with:
+          old: published-data-source-checksums.txt
+          new: data-sources/data-source-checksums.txt
+          mode: strict
+          tolerance: same
+
+      - name: Output result
+        run: |
+          echo "Files identical: ${{ steps.comparison.outputs.passed }}"
+
+      - name: Do not create release
+        if: ${{ steps.comparison.outputs.passed }}
+        run: echo "Do not create release"
+
+      - name: Create release
+        if: ${{ !steps.comparison.outputs.passed }}
+        run: echo "Create release"
