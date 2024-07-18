@@ -52,10 +52,6 @@ jobs:
           path: /opt/app/.
           destination: app
 
-      - run: ls -lah
-
-      - run: ls -lah app
-
       - name: Upload boundaries.sqlite artifact
         uses: actions/upload-artifact@v4
         with:
