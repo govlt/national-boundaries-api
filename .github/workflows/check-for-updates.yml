@@ -70,10 +70,19 @@ jobs:
     if: ${{ needs.check-for-updates.outputs.create-release }}
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Get Token for creating new Release
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
+          permissions: "contents:write"
+          revoke_token: true
 
       - name: Get next version
         uses: reecetech/version-increment@2024.4.4
@@ -87,6 +96,7 @@ jobs:
         with:
           make_latest: false
           tag_name: ${{ steps.version.outputs.version }}
+          token: ${{ steps.get_workflow_token.outputs.token }}
           body: |
             Automated release after data source update
             
