@@ -26,28 +26,23 @@ jobs:
       - name: Make create-database.sh executable
         run: chmod +x create-database.sh
 
-#      - name: Create database
-#        run: ./create-database.sh
-#
-#      - name: Upload data-source-checksums.txt artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: data-source-checksums.txt
-#          path: data-sources/data-source-checksums.txt
-#          if-no-files-found: error
+      - name: Create database
+        run: ./create-database.sh
+
+      - name: Upload data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: data-sources/data-source-checksums.txt
+          if-no-files-found: error
 
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
 
-
-
-      - run: |
-          mkdir data-sources
-          cp published-data-source-checksums.txt data-sources/data-source-checksums.txt
-
-      - run: |
-          echo "published-data-source-checksums.txt checksum ${{ hashFiles('published-data-source-checksums.txt') }}"
-          echo "data-sources/data-source-checksums.txt checksum ${{ hashFiles('data-sources/data-source-checksums.txt') }}"
+      #
+      #      - run: |
+      #          echo "published-data-source-checksums.txt checksum ${{ hashFiles('published-data-source-checksums.txt') }}"
+      #          echo "data-sources/data-source-checksums.txt checksum ${{ hashFiles('data-sources/data-source-checksums.txt') }}"
 
       - name: TODO remove
         run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
@@ -61,57 +56,62 @@ jobs:
 
       - name: Check that the files are the exact same
         id: comparison
-        uses: LouisBrunner/diff-action@v2.0.0
-        with:
-          old: published-data-source-checksums.txt
-          new: data-sources/data-source-checksums.txt
-          mode: strict
-          output: data-source-checksums-diff.txt
-
-      - name: Upload data-source-checksums-diff.txt artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-source-checksums-diff.txt
-          path: data-source-checksums-diff.txt
-          if-no-files-found: error
-
-      - name: Output result
+        if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         run: |
-          echo "Files identical: ${{ steps.comparison.outputs.passed }}"
-
-      - name: Do not create release
-        if: ${{ steps.comparison.outputs.passed }}
-        run: echo "Do not create release"
+          echo "Files are not identical"
+          echo "create-release=true" >> "${GITHUB_OUTPUT}"
 
 
-  create-release:
-    name: Create release
-    runs-on: ubuntu-latest
-    concurrency: check-for-data-source-updates-create-release
-    needs:
-      - check-for-updates
-    if: needs.check-for-updates.outputs.create-release
-    timeout-minutes: 30
-    permissions:
-      contents: read
-    steps:
-      - name: Create release
-        if: ${{ !steps.comparison.outputs.passed }}
-        run: echo "Create release with $DIFF"
-        env:
-          DIFF: ${{ needs.check-for-updates.outputs.diff }}
-
-      - name: Create changelog
+      - name: Release will be created
+        if: ${{ steps.comparison.outputs.create-release }}
         run: |
-          echo "Automated release after data source update\n" >> changelog.txt
-          echo "```${DIFF}```" >> changelog.txt
-        env:
-          DIFF: ${{ needs.check-for-updates.outputs.diff }}
+          echo "Reelease will be created"
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: ${{ !steps.comparison.outputs.passed }}
-        with:
-          body_path: changelog.txt
-          draft: true
-          tag_name: 1.1.0
+
+#      - name: Upload data-source-checksums-diff.txt artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: data-source-checksums-diff.txt
+#          path: data-source-checksums-diff.txt
+#          if-no-files-found: error
+#
+#      - name: Output result
+#        run: |
+#          echo "Files identical: ${{ steps.comparison.outputs.passed }}"
+#
+#      - name: Do not create release
+#        if: ${{ steps.comparison.outputs.passed }}
+#        run: echo "Do not create release"
+
+
+#  create-release:
+#    name: Create release
+#    runs-on: ubuntu-latest
+#    concurrency: check-for-data-source-updates-create-release
+#    needs:
+#      - check-for-updates
+#    if: needs.check-for-updates.outputs.create-release
+#    timeout-minutes: 30
+#    permissions:
+#      contents: read
+#    steps:
+#      - name: Create release
+#        if: ${{ !steps.comparison.outputs.passed }}
+#        run: echo "Create release with $DIFF"
+#        env:
+#          DIFF: ${{ needs.check-for-updates.outputs.diff }}
+#
+#      - name: Create changelog
+#        run: |
+#          echo "Automated release after data source update\n" >> changelog.txt
+#          echo "```${DIFF}```" >> changelog.txt
+#        env:
+#          DIFF: ${{ needs.check-for-updates.outputs.diff }}
+#
+#      - name: Release
+#        uses: softprops/action-gh-release@v2
+#        if: ${{ !steps.comparison.outputs.passed }}
+#        with:
+#          body_path: changelog.txt
+#          draft: true
+#          tag_name: 1.1.0
