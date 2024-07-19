@@ -54,19 +54,11 @@ jobs:
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         shell: bash
         run: |
-          difference="$(diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :)"
-
-          echo "$difference"
+          echo "create-release=true" >> "${GITHUB_OUTPUT}"
           
-#          echo "create-release=true" >> "${GITHUB_OUTPUT}"
-#          echo 'diff<<EOF' >> ${GITHUB_OUTPUT}
-#          diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' >> ${GITHUB_OUTPUT}
-#          echo 'EOF' >> ${GITHUB_OUTPUT}
-
-      - name: Release will be created
-        if: ${{ steps.comparison.outputs.create-release }}
-        run: |
-          echo "Reelease will be created"
+          echo 'diff<<EOF' >> ${GITHUB_OUTPUT}
+          (diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :) >> ${GITHUB_OUTPUT}
+          echo 'EOF' >> ${GITHUB_OUTPUT}
 
 
   create-release:
@@ -78,7 +70,7 @@ jobs:
     if: ${{ needs.check-for-updates.outputs.create-release }}
     timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Release
         uses: softprops/action-gh-release@v2
