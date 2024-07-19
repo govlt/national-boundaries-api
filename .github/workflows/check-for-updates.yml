@@ -23,15 +23,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-#      - name: Create database
-#        run: chmod +x create-database.sh && ./create-database.sh
-#
-#      - name: Upload data-source-checksums.txt artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: data-source-checksums.txt
-#          path: data-sources/data-source-checksums.txt
-#          if-no-files-found: error
+      #      - name: Create database
+      #        run: chmod +x create-database.sh && ./create-database.sh
+      #
+      #      - name: Upload data-source-checksums.txt artifact
+      #        uses: actions/upload-artifact@v4
+      #        with:
+      #          name: data-source-checksums.txt
+      #          path: data-sources/data-source-checksums.txt
+      #          if-no-files-found: error
 
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
@@ -54,7 +54,9 @@ jobs:
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         run: |
           echo "create-release=true" >> "${GITHUB_OUTPUT}"
-          echo "diff=$(diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt')" >> "${GITHUB_OUTPUT}"
+          echo 'diff<<EOF' >> "${GITHUB_OUTPUT}"
+          diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' >> "${GITHUB_OUTPUT}"
+          echo 'EOF' >> "${GITHUB_OUTPUT}"
 
       - name: Release will be created
         if: ${{ steps.comparison.outputs.create-release }}
