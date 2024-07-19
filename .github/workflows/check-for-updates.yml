@@ -55,11 +55,12 @@ jobs:
         shell: bash
         run: |
           echo "create-release=true" >> "${GITHUB_OUTPUT}"
-          
-          echo 'diff<<EOF' >> ${GITHUB_OUTPUT}
-          (diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :) >> ${GITHUB_OUTPUT}
-          echo 'EOF' >> ${GITHUB_OUTPUT}
-
+          { 
+            echo "create-release=true"
+            echo 'diff<<EOF'
+            (diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :)
+            echo 'EOF'
+          } >> "${GITHUB_OUTPUT}"
 
   create-release:
     name: Create release
