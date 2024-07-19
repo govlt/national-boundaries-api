@@ -44,8 +44,8 @@ jobs:
       #          echo "published-data-source-checksums.txt checksum ${{ hashFiles('published-data-source-checksums.txt') }}"
       #          echo "data-sources/data-source-checksums.txt checksum ${{ hashFiles('data-sources/data-source-checksums.txt') }}"
 
-      - name: TODO remove
-        run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
+#      - name: TODO remove
+#        run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
 
       - name: Upload published-data-source-checksums.txt artifact
         uses: actions/upload-artifact@v4
