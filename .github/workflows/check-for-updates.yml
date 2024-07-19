@@ -54,15 +54,14 @@ jobs:
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         run: |
           echo "create-release=true" >> "${GITHUB_OUTPUT}"
-          echo 'diff<<EOF' >> "${GITHUB_OUTPUT}"
-          diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' >> "${GITHUB_OUTPUT}"
-          echo 'EOF' >> "${GITHUB_OUTPUT}"
+          echo 'diff<<EOF' >> ${GITHUB_OUTPUT}
+          diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' >> ${GITHUB_OUTPUT}
+          echo 'EOF' >> ${GITHUB_OUTPUT}
 
       - name: Release will be created
         if: ${{ steps.comparison.outputs.create-release }}
         run: |
           echo "Reelease will be created"
-
 
 
   create-release:
