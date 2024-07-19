@@ -52,12 +52,13 @@ jobs:
       - name: Check that the files are the exact same
         id: comparison
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
+        shell: bash
         run: |
           difference="$(diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt')"
           
           echo "$difference"
           
-          echo "create-release=true" >> "${GITHUB_OUTPUT}"
+#          echo "create-release=true" >> "${GITHUB_OUTPUT}"
 #          echo 'diff<<EOF' >> ${GITHUB_OUTPUT}
 #          diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' >> ${GITHUB_OUTPUT}
 #          echo 'EOF' >> ${GITHUB_OUTPUT}
