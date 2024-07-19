@@ -53,11 +53,10 @@ jobs:
         id: comparison
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         shell: bash
-        run: diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt'
-#        run: |
-#          difference="$(diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt')"
-#
-#          echo "$difference"
+        run: |
+          difference="$(diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :)"
+
+          echo "$difference"
           
 #          echo "create-release=true" >> "${GITHUB_OUTPUT}"
 #          echo 'diff<<EOF' >> ${GITHUB_OUTPUT}
