@@ -75,7 +75,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          make_latest: false
           tag_name: 1.1.0
           body: |
             Automated release after data source update
