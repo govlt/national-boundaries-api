@@ -26,18 +26,28 @@ jobs:
       - name: Make create-database.sh executable
         run: chmod +x create-database.sh
 
-      - name: Create database
-        run: ./create-database.sh
-
-      - name: Upload data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-source-checksums.txt
-          path: data-sources/data-source-checksums.txt
-          if-no-files-found: error
+#      - name: Create database
+#        run: ./create-database.sh
+#
+#      - name: Upload data-source-checksums.txt artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: data-source-checksums.txt
+#          path: data-sources/data-source-checksums.txt
+#          if-no-files-found: error
 
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
+
+
+
+      - run: |
+          mkdir data-sources
+          cp published-data-source-checksums.txt data-sources/data-source-checksums.txt
+
+      - run: |
+          echo "published-data-source-checksums.txt checksum ${{ hashFiles('published-data-source-checksums.txt') }}"
+          echo "data-sources/data-source-checksums.txt checksum ${{ hashFiles('data-sources/data-source-checksums.txt') }}"
 
       - name: TODO remove
         run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
