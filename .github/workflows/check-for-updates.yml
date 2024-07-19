@@ -15,7 +15,7 @@ jobs:
       contents: read
     outputs:
       create-release: ${{ !steps.comparison.outputs.create-release || false }}
-      diff: ${{ steps.comparison.outputs.output }}
+      diff: ${{ steps.comparison.outputs.diff }}
     steps:
       - name: Install csvkit
         run: apt-get update && apt-get install -y csvkit
@@ -83,4 +83,3 @@ jobs:
             ```
             ${{ needs.check-for-updates.outputs.diff }}
             ```
-            echo "```${DIFF}```" >> changelog.txt
