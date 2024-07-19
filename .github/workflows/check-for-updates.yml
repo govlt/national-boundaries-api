@@ -23,11 +23,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Make create-database.sh executable
-        run: chmod +x create-database.sh
-
       - name: Create database
-        run: ./create-database.sh
+        run: chmod +x create-database.sh && ./create-database.sh
 
       - name: Upload data-source-checksums.txt artifact
         uses: actions/upload-artifact@v4
@@ -39,13 +36,8 @@ jobs:
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
 
-      #
-      #      - run: |
-      #          echo "published-data-source-checksums.txt checksum ${{ hashFiles('published-data-source-checksums.txt') }}"
-      #          echo "data-sources/data-source-checksums.txt checksum ${{ hashFiles('data-sources/data-source-checksums.txt') }}"
-
-#      - name: TODO remove
-#        run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
+      - name: TODO remove
+        run: echo "Hello hello. New release" >> data-sources/data-source-checksums.txt
 
       - name: Upload published-data-source-checksums.txt artifact
         uses: actions/upload-artifact@v4
@@ -58,30 +50,14 @@ jobs:
         id: comparison
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         run: |
-          echo "Files are not identical"
           echo "create-release=true" >> "${GITHUB_OUTPUT}"
-
+          echo "diff=$(diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt')" >> "${GITHUB_OUTPUT}"
 
       - name: Release will be created
         if: ${{ steps.comparison.outputs.create-release }}
         run: |
           echo "Reelease will be created"
 
-
-#      - name: Upload data-source-checksums-diff.txt artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: data-source-checksums-diff.txt
-#          path: data-source-checksums-diff.txt
-#          if-no-files-found: error
-#
-#      - name: Output result
-#        run: |
-#          echo "Files identical: ${{ steps.comparison.outputs.passed }}"
-#
-#      - name: Do not create release
-#        if: ${{ steps.comparison.outputs.passed }}
-#        run: echo "Do not create release"
 
 
 #  create-release:
