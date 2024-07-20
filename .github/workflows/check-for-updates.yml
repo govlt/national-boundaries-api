@@ -15,7 +15,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      create-release: ${{ !steps.comparison.outputs.create-release || false }}
+      create-release: ${{ steps.comparison.outputs.create-release || false }}
       diff: ${{ steps.comparison.outputs.diff }}
     steps:
       - name: Install csvkit
@@ -56,7 +56,6 @@ jobs:
         if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
         shell: bash
         run: |
-          echo "create-release=true" >> "${GITHUB_OUTPUT}"
           { 
             echo "create-release=true"
             echo 'diff<<EOF'
