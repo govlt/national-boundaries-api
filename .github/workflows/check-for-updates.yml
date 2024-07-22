@@ -62,8 +62,7 @@ jobs:
 
       - name: Mark release creation
         id: release
-        if: ${{ steps.comparison.outputs.diff != '' }}
-        run: echo "create-release=true" >> "${GITHUB_OUTPUT}"
+        run: echo "create-release=${{ steps.comparison.outputs.diff != '' && 'true' ||  'false' }}" >> "${GITHUB_OUTPUT}"
 
   create-release:
     name: Create release
