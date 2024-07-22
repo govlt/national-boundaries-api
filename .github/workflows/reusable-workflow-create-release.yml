@@ -1,4 +1,4 @@
-name: Create release
+name: "Reusable workflow: Create release"
 
 on:
   workflow_call:
@@ -53,6 +53,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           make_latest: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-pre') && 'true' || 'false' }}
           tag_name: ${{ steps.version.outputs.version }}
           token: ${{ steps.get_workflow_token.outputs.token }}
           body: ${{ inputs.body }}
