@@ -53,7 +53,6 @@ jobs:
 
       - name: Check that the files are the exact same
         id: comparison
-        shell: bash
         run: |
           { 
             echo 'diff<<EOF'
