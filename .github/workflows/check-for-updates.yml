@@ -15,7 +15,6 @@ jobs:
     permissions:
       contents: read
     outputs:
-      create-release: ${{ steps.release.outputs.create-release || false }}
       diff: ${{ steps.comparison.outputs.diff }}
     steps:
       - name: Install csvkit
@@ -60,17 +59,13 @@ jobs:
             echo 'EOF'
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Mark release creation
-        id: release
-        run: echo "create-release=${{ steps.comparison.outputs.diff != '' && 'true' ||  'false' }}" >> "${GITHUB_OUTPUT}"
-
   create-release:
     name: Create release
     runs-on: ubuntu-latest
     concurrency: check-for-data-source-updates-create-release
     needs:
       - check-for-updates
-    if: ${{ needs.check-for-updates.outputs.create-release }}
+    if: ${{ needs.check-for-updates.outputs.diff != '' }}
     timeout-minutes: 30
     permissions:
       contents: read
