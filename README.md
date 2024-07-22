@@ -58,6 +58,15 @@ Optionally, use the SQLite database with all boundaries and addresses directly w
 national-boundaries-api. Download the latest database
 version [here](https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite).
 
+## Architecture
+
+```mermaid
+flowchart TD
+    ar["State Enterprise Centre of Registers\n<a href="https://www.registrucentras.lt/p/1187">Address Registry raw data</a>"]-->transform["<a href="https://github.com/govlt/national-boundaries-api/blob/main/create-database.sh">Create SQLite database</a>"]-->|"<a href="https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite">boundaries.sqlite</a>"|docker-image
+
+docker-image["Docker image\n<a href="https://github.com/govlt/national-boundaries-api/pkgs/container/national-boundaries-api">national-boundaries-api</a>"]
+```
+
 ## Getting Started Development
 
 To embark on your development journey, follow these simple steps:
