@@ -1,0 +1,27 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: Version increment
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  create-release:
+    name: Create release
+    concurrency: create-release
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-workflow-create-release.yml
+    with:
+      increment: ${{ inputs.increment }}
+      generate_release_notes: true
+    secrets:
+      APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+      APPLICATION_PRIVATE_KEY: ${{ secrets.APPLICATION_PRIVATE_KEY }}
