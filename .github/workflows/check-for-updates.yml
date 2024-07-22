@@ -15,7 +15,6 @@ jobs:
     permissions:
       contents: read
     outputs:
-      create-release: ${{ steps.comparison.outputs.create-release || false }}
       diff: ${{ steps.comparison.outputs.diff }}
     steps:
       - name: Install csvkit
@@ -53,11 +52,8 @@ jobs:
 
       - name: Check that the files are the exact same
         id: comparison
-        if: ${{ hashFiles('published-data-source-checksums.txt')  != hashFiles('data-sources/data-source-checksums.txt') }}
-        shell: bash
         run: |
           { 
-            echo "create-release=true"
             echo 'diff<<EOF'
             (diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :)
             echo 'EOF'
@@ -69,7 +65,7 @@ jobs:
     concurrency: check-for-data-source-updates-create-release
     needs:
       - check-for-updates
-    if: ${{ needs.check-for-updates.outputs.create-release }}
+    if: ${{ needs.check-for-updates.outputs.diff != '' }}
     timeout-minutes: 30
     permissions:
       contents: read
