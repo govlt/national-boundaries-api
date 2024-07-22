@@ -61,43 +61,22 @@ jobs:
 
   create-release:
     name: Create release
-    runs-on: ubuntu-latest
+    if: ${{ needs.check-for-updates.outputs.diff != '' }}
     concurrency: check-for-data-source-updates-create-release
     needs:
       - check-for-updates
-    if: ${{ needs.check-for-updates.outputs.diff != '' }}
-    timeout-minutes: 30
     permissions:
       contents: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get Token for creating new Release
-        id: get_workflow_token
-        uses: peter-murray/workflow-application-token-action@v3
-        with:
-          application_id: ${{ secrets.APPLICATION_ID }}
-          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
-          permissions: "contents:write"
-          revoke_token: true
-
-      - name: Get next version
-        uses: reecetech/version-increment@2024.4.4
-        id: version
-        with:
-          scheme: semver
-          increment: patch
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          make_latest: false
-          tag_name: ${{ steps.version.outputs.version }}
-          token: ${{ steps.get_workflow_token.outputs.token }}
-          body: |
-            Automated release after data source update
-            
-            ```
-            ${{ needs.check-for-updates.outputs.diff }}
-            ```
+    uses: ./.github/workflows/reusable-workflow-create-release.yml
+    with:
+      increment: patch
+      generate_release_notes: false
+      body: |
+        Automated release after data source update
+        
+        ```
+        ${{ needs.check-for-updates.outputs.diff }}
+        ```
+    secrets:
+      APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+      APPLICATION_PRIVATE_KEY: ${{ secrets.APPLICATION_PRIVATE_KEY }}
