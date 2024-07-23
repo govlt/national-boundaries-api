@@ -238,7 +238,7 @@ rooms_router = APIRouter()
 
 @rooms_router.post(
     "/search",
-    response_model=CursorPage[schemas.Rooms],
+    response_model=CursorPage[schemas.Room],
     summary="Search for rooms with pagination using various filters",
     description="Search for rooms with pagination using various filters such as address codes, "
                 "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
@@ -279,7 +279,7 @@ def rooms_search(
 
 @rooms_router.get(
     "/{code}",
-    response_model=schemas.Rooms,
+    response_model=schemas.Room,
     summary="Get room by code",
     description="Retrieve a room by its unique code.",
     responses={

@@ -150,7 +150,7 @@ class Address(ShortAddress):
     geometry: Geometry = Field(description="Point geometry of the address")
 
 
-class Rooms(BaseModel):
+class Room(BaseModel):
     code: int = Field(description="Unique code of the room")
     room_number: str = Field(description="Room number in the building or building section")
     created_at: datetime.date = Field(description="Date of creation of the room address")
