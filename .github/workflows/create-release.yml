@@ -1,4 +1,5 @@
 name: Create release
+run-name: "Create ${{ inputs.increment }} release"
 
 on:
   workflow_dispatch:
