@@ -221,7 +221,7 @@ class AddressesFilter(StreetsFilter):
         geom_field = models.Addresses.geom
 
 
-class RoomsFilter(StreetsFilter):
+class RoomsFilter(AddressesFilter):
 
     def apply(self, search_filter: schemas.RoomsSearchFilterRequest, db: Session) -> Iterator[ColumnExpressionArgument]:
         yield from super().apply(search_filter, db)
