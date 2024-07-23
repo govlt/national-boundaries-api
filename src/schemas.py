@@ -379,7 +379,7 @@ class AddressesSearchFilterRequest(StreetsSearchFilterRequest):
     )
 
 
-class RoomsSearchFilterRequest(StreetsSearchFilterRequest):
+class RoomsSearchFilterRequest(AddressesSearchFilterRequest):
     rooms: Optional[RoomsFilter] = Field(
         default=None,
         description="Filter by rooms",
