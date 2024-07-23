@@ -13,6 +13,21 @@ class SearchSortBy(enum.StrEnum):
     created_at = 'created_at'
 
 
+class AddressSearchSortBy(enum.StrEnum):
+    code = 'code'
+    plot_or_building_number = 'plot_or_building_number'
+    building_block_number = 'building_block_number'
+    postal_code = 'postal_code'
+    feature_id = 'feature_id'
+    created_at = 'created_at'
+
+
+class RoomsSearchSortBy(enum.StrEnum):
+    code = 'code'
+    room_number = 'room_number'
+    created_at = 'created_at'
+
+
 class SearchSortOrder(str, enum.Enum):
     asc = 'asc'
     desc = 'desc'
