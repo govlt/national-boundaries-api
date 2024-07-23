@@ -100,7 +100,7 @@ class BaseBoundariesService(abc.ABC):
     def search(
             self,
             db: Session,
-            sort_by: schemas.SearchSortBy,
+            sort_by_field: str,
             sort_order: schemas.SearchSortOrder,
             request: schemas.BaseSearchRequest,
             boundaries_filter: filters.BaseFilter,
@@ -118,7 +118,7 @@ class BaseBoundariesService(abc.ABC):
 
         query = query.where(or_(*query_search_filters))
 
-        sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
+        sort_by_field = operators.collate(getattr(self.model_class, sort_by_field), "NOCASE")
 
         if sort_order == schemas.SearchSortOrder.desc:
             sort_by_field = sort_by_field.desc()

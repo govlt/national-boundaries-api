@@ -48,7 +48,7 @@ def create_boundaries_router(
     ):
         return service.search(
             db=db,
-            sort_by=sort_by,
+            sort_by_field=sort_by,
             sort_order=sort_order,
             request=request,
             boundaries_filter=boundaries_filter,
@@ -179,7 +179,7 @@ def addresses_search(
                 **constants.openapi_examples_geometry_filtering,
             })
         ],
-        sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
+        sort_by: schemas.AddressSearchSortBy = Query(default=schemas.AddressSearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         geometry_output_format: schemas.GeometryOutputFormat = constants.query_geometry_output_type,
         srid: int = constants.query_srid,
@@ -189,7 +189,7 @@ def addresses_search(
 ):
     return service.search(
         db,
-        sort_by=sort_by,
+        sort_by_field=sort_by,
         sort_order=sort_order,
         request=request,
         srid=srid,
@@ -258,7 +258,7 @@ def rooms_search(
                 **constants.openapi_examples_geometry_filtering,
             })
         ],
-        sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
+        sort_by: schemas.RoomsSearchSortBy = Query(default=schemas.RoomsSearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         srid: int = constants.query_srid,
         geometry_output_format: schemas.GeometryOutputFormat = Query(default=schemas.GeometryOutputFormat.ewkt),
@@ -268,7 +268,7 @@ def rooms_search(
 ):
     return service.search(
         db,
-        sort_by=sort_by,
+        sort_by_field=sort_by,
         sort_order=sort_order,
         request=request,
         srid=srid,
