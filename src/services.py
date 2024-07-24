@@ -118,12 +118,20 @@ class BaseBoundariesService(abc.ABC):
 
         query = query.where(or_(*query_search_filters))
 
-        sort_by_field = operators.collate(getattr(self.model_class, sort_by_field), "NOCASE")
+        sort_attr = getattr(self.model_class, sort_by_field)
+        sort_by = operators.collate(sort_attr, "NOCASE")
 
         if sort_order == schemas.SearchSortOrder.desc:
-            sort_by_field = sort_by_field.desc()
+            sort_by = sort_by.desc()
 
-        query = query.order_by(sort_by_field, self.model_class.code.asc())
+        # Do natural sort on room numbers and plot_or_building_number e.g. 1, 1A, 2, 101, 101A, 102
+        if sort_by_field == 'room_number' or sort_by_field == 'plot_or_building_number':
+            if sort_order == schemas.SearchSortOrder.asc:
+                query = query.order_by((sort_attr * 1).asc())
+            else:
+                query = query.order_by((sort_attr * 1).desc())
+
+        query = query.order_by(sort_by, self.model_class.code.asc())
         return paginate(db, query)
 
     def get_by_code(
