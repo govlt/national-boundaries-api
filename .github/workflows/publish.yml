@@ -30,7 +30,7 @@ jobs:
         id: docker
         with:
           docker-image: ghcr.io/govlt/national-boundaries-api
-          environment: ${{ contains(github.ref, 'pre') && 'preview' ||  'stable' }}
+          environment: ${{ github.event_name == 'push' && 'preview' || (contains(github.ref, 'pre') && 'preview' ||  'stable') }}
           no-cache: true
           push: true
           cache-from: ''
@@ -67,6 +67,7 @@ jobs:
 
       - name: Upload artifacts to GitHub release
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           make_latest: ${{ contains(github.ref, 'pre') && 'false' ||  'true' }}
           files: |
