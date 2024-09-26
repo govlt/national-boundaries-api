@@ -242,6 +242,32 @@ class RoomsFilter(AddressesFilter):
         geom_field = models.Addresses.geom
 
 
+class ParcelsFilter(MunicipalitiesFilter):
+
+    def apply(
+            self,
+            search_filter: schemas.ParcelSearchFilterRequest,
+            db: Session
+    ) -> Iterator[ColumnExpressionArgument]:
+        yield from super().apply(search_filter, db)
+
+        if parcel_filter := search_filter.parcels:
+            yield from self._apply_parcels_filters(parcel_filter)
+
+    @staticmethod
+    def _apply_parcels_filters(parcel_filter: schemas.ParcelsFilter) -> Iterator[ColumnExpressionArgument]:
+        if parcel_filter.cadastral_number:
+            yield from _filter_by_string_field(string_filter=parcel_filter.cadastral_number,
+                                               string_field=models.Parcels.cadastral_number)
+
+        unique_numbers = parcel_filter.unique_numbers
+        if unique_numbers and len(unique_numbers) > 0:
+            yield models.Parcels.unique_number.in_(unique_numbers)
+
+    class Meta:
+        geom_field = models.Parcels.geom
+
+
 def _is_valid_geometry(db: Session, geom: GenericFunction) -> bool:
     try:
         return db.execute(ST_IsValid(geom)).scalar() == 1

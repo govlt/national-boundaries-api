@@ -131,7 +131,11 @@ class BaseBoundariesService(abc.ABC):
             else:
                 query = query.order_by((sort_attr * 1).desc())
 
-        query = query.order_by(sort_by, self.model_class.code.asc())
+        if hasattr(self.model_class, 'code'):
+            query = query.order_by(sort_by, self.model_class.code.asc())
+        else:
+            query = query.order_by(sort_by)
+
         return paginate(db, query)
 
     def get_by_code(
@@ -327,3 +331,29 @@ class RoomsService(BaseBoundariesService):
 
     def _filter_by_code(self, query: Select, code: int) -> Select:
         return query.filter(models.Rooms.code == code)
+
+class ParcelsService(BaseBoundariesService):
+    model_class = models.Parcels
+
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
+        columns = [
+            models.Parcels.unique_number,
+            models.Parcels.cadastral_number,
+            models.Parcels.area_ha,
+            models.Parcels.updated_at,
+            _municipality_object,
+            self._get_geometry_field(models.Parcels.geom, srid, geometry_output_format)
+        ]
+
+        return select(*columns).select_from(models.Parcels)\
+            .outerjoin(models.Parcels.municipality) \
+            .outerjoin(models.Municipalities.county)
+            
+    # Currently not implemented - unique numbers are duplicates
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query
+

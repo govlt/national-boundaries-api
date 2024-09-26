@@ -94,6 +94,25 @@ ogr2ogr -append -f SQLite boundaries.sqlite data-sources/rooms.psv -lco FID=code
   -sql "SELECT CAST(PAT_KODAS AS integer(8)) as code, CAST(AOB_KODAS AS integer(8)) AS address_code, PATALPOS_NR AS room_number, PAT_NUO AS created_at FROM rooms"
 ogrinfo -sql "CREATE INDEX rooms_address_code ON rooms(address_code, room_number)" boundaries.sqlite
 
+
+# This step pulls data for each municipality individually because the is no complete geojson with all municipalities included.
+echo "Importing parcel points for each municipality"
+curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" | csvcut -d "|" -c "SAV_KODAS" | tail -n +2 | while read -r code; do
+  echo "Converting https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
+  curl -f -L --max-redirs 5 --retry 3 -o "data-sources/parcels-$code.zip" "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
+  calculate_md5 "data-sources/parcels-$code.zip" >> data-sources/data-source-checksums.txt
+  unzip data-sources/parcels-$code.zip -d data-sources
+
+  ogr2ogr -append -f GPKG data-sources/parcels.gpkg "data-sources/gis_pub_parcels_$code.json" -nln polygons
+done
+
+echo "Finishing parcels data import into SQLite"
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/parcels.gpkg -nln parcels -lco GEOMETRY_NAME=geom \
+  -sql "SELECT polygons.unikalus_nr AS unique_number, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, CAST(polygons.seniunijos_kodas AS integer(8)) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
+ogrinfo -sql "CREATE INDEX parcels_unique_number ON parcels(unique_number)" boundaries.sqlite
+ogrinfo -sql "CREATE INDEX parcels_cadastral_number ON parcels(cadastral_number)" boundaries.sqlite
+ogrinfo -sql "CREATE INDEX parcels_municipality_code ON parcels(municipality_code, unique_number COLLATE NOCASE)" boundaries.sqlite
+
 echo "Finalizing SQLite database"
 ogrinfo boundaries.sqlite -sql "VACUUM"
 

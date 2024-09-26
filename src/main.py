@@ -155,6 +155,12 @@ app.include_router(
     tags=["rooms"],
 )
 
+app.include_router(
+    router.parcels_router,
+    prefix="/v1/parcels",
+    tags=["parcels"],
+)
+
 app.include_router(router.health_check_router)
 
 

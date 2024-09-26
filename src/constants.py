@@ -679,3 +679,64 @@ openapi_examples_rooms_filtering: Dict[str, Example] = {
         }
     }
 }
+
+openapi_examples_parcels_filtering: Dict[str, Example] = {
+    "example_parcels_unique_numbers": {
+        "summary": "Filter by unique numbers",
+        "description": "Retrieve data for parcels by specifying parcel unique numbers.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "unique_numbers": [110100090085, 110100210172]
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_cadastral_number_contains": {
+        "summary": "Filter by parcel cadastral number containing substring",
+        "description": "Retrieve data for parcels where parcel cadastral number contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "cadastral_number": {
+                            "contains": "1101/0028"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_cadastral_number_exact": {
+        "summary": "Filter by parcel exact cadastral number",
+        "description": "Retrieve data for parcels matching the exact parcel cadastral number.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "cadastral_number": {
+                            "exact": "1101/0028:0196"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_cadastral_number_starts": {
+        "summary": "Filter by parcel cadastral number starting with prefix",
+        "description": "Retrieve data for parcels where parcel cadastral number starts with the specified prefix.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "cadastral_number": {
+                            "starts": "1101/0028"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

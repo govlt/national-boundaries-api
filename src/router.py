@@ -310,3 +310,43 @@ def rooms_get(
             status_code=404,
             detail="Room not found",
         )
+
+
+parcels_router = APIRouter()
+
+
+@parcels_router.post(
+    "/search",
+    response_model=CursorPage[schemas.Parcel],
+    summary="Search for parcels with pagination using various filters",
+    description="Search for parcels with pagination using various filters such as parcel unique numbers, "
+                "cadastral numbers. Additionally, you can filter by GeoJson, EWKT geometry",
+    response_description="A paginated list of parcels matching the search criteria.",
+    generate_unique_id_function=lambda _: "parcels-search",
+)
+def parcels_search(
+        request: Annotated[
+            schemas.ParcelsSearchRequest,
+            Body(openapi_examples={
+                **constants.openapi_examples_parcels_filtering,
+                **constants.openapi_examples_municipalities_filtering,
+                **constants.openapi_examples_geometry_filtering,
+            })
+        ],
+        sort_by: schemas.ParcelsSearchSortBy = Query(default=schemas.ParcelsSearchSortBy.unique_number),
+        sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
+        geometry_output_format: schemas.GeometryOutputFormat = constants.query_geometry_output_type,
+        srid: int = constants.query_srid,
+        db: Session = Depends(database.get_db),
+        parcels_filter: filters.ParcelsFilter = Depends(filters.ParcelsFilter),
+        service: services.ParcelsService = Depends(services.ParcelsService),
+):
+    return service.search(
+        db,
+        sort_by_field=sort_by,
+        sort_order=sort_order,
+        request=request,
+        srid=srid,
+        boundaries_filter=parcels_filter,
+        geometry_output_format=geometry_output_format
+    )

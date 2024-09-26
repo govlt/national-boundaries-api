@@ -36,6 +36,7 @@ class Municipalities(BaseBoundaries):
     elderships = relationship("Elderships", back_populates="municipality")
     residential_areas = relationship("ResidentialAreas", back_populates="municipality")
     addresses = relationship("Addresses", back_populates="municipality")
+    parcels = relationship("Parcels", back_populates="municipality")
 
 
 class Elderships(BaseBoundaries):
@@ -105,3 +106,22 @@ class Rooms(Base):
 
     address_code = Column(Integer, ForeignKey("addresses.code"))
     address = relationship("Addresses", back_populates="rooms")
+
+
+class Parcels(Base):
+    __tablename__ = "parcels"
+
+    ogc_fid = Column(Integer, primary_key=True)
+    unique_number = Column(Integer, nullable=False, index=True)
+    cadastral_number = Column(String, nullable=False, index=True)
+
+    updated_at = Column(Date, nullable=True)
+    area_ha = Column(Double, nullable=False)
+
+    municipality_code = Column(Integer, ForeignKey("municipalities.code"))
+    municipality = relationship("Municipalities", back_populates="parcels")
+
+    geom = Column(
+        Geometry(srid=3346, nullable=False), nullable=False
+    )
+
