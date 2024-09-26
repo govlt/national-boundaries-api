@@ -345,6 +345,8 @@ class ParcelsService(BaseBoundariesService):
             models.Parcels.cadastral_number,
             models.Parcels.area_ha,
             models.Parcels.updated_at,
+            models.Parcels.purpose_id,
+            models.Parcels.status_id,
             _municipality_object,
             self._get_geometry_field(models.Parcels.geom, srid, geometry_output_format)
         ]

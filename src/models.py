@@ -114,6 +114,9 @@ class Parcels(Base):
     ogc_fid = Column(Integer, primary_key=True)
     unique_number = Column(Integer, nullable=False, index=True)
     cadastral_number = Column(String, nullable=False, index=True)
+    
+    status_id = Column(Integer, nullable=True)
+    purpose_id = Column(Integer, nullable=True)
 
     updated_at = Column(Date, nullable=True)
     area_ha = Column(Double, nullable=False)
