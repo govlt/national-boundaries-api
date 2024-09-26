@@ -116,9 +116,9 @@ class Parcels(Base):
     cadastral_number = Column(String, nullable=False, index=True)
     
     status_id = Column(Integer, nullable=True)
-    purpose_id = Column(Integer, nullable=True)
+    purpose_id = Column(Integer, nullable=False)
 
-    updated_at = Column(Date, nullable=True)
+    updated_at = Column(Date, nullable=False)
     area_ha = Column(Double, nullable=False)
 
     municipality_code = Column(Integer, ForeignKey("municipalities.code"))

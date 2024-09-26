@@ -185,7 +185,7 @@ class ShortParcel(BaseModel):
     cadastral_number: str = Field(description="Cadastral number of the parcel")
     updated_at: datetime.date = Field(description="Date of update of the parcel")
     purpose_id: int = Field(description="Purpose ID of the parcel")
-    status_id: int = Field(description="Status ID of the parcel")
+    status_id: Optional[int] = Field(description="Status ID of the parcel")
     area_ha: float = Field(description="Area of the parcel in hectares")
 
     municipality: ShortMunicipality = Field(description="Municipality information the parcel belongs to")
