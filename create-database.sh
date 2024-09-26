@@ -101,7 +101,7 @@ curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" |
   echo "Converting https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
   curl -f -L --max-redirs 5 --retry 3 -o "data-sources/parcels-$code.zip" "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
   calculate_md5 "data-sources/parcels-$code.zip" >> data-sources/data-source-checksums.txt
-  unzip data-sources/parcels-$code.zip -d data-sources
+  unzip data-sources/parcels-"$code".zip -d data-sources
 
   ogr2ogr -append -f GPKG data-sources/parcels.gpkg "data-sources/gis_pub_parcels_$code.json" -nln polygons
 done
