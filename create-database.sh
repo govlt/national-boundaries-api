@@ -106,6 +106,20 @@ curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" |
   ogr2ogr -append -f GPKG data-sources/parcels.gpkg "data-sources/gis_pub_parcels_$code.json" -nln polygons
 done
 
+# Importing purpose types
+echo "Importing purpose types"
+curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_paskirciu_tipai.csv
+calculate_md5 data-sources/purpose_types.psv >> data-sources/data-source-checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_types.psv -lco FID=purpose_id \
+  -sql "SELECT CAST(pask_tipas AS integer(8)) AS purpose_id, CAST(pasg_grupe AS integer(8)) AS purpose_group, pask_pav AS name, pask_pav_i AS full_name, pask_pav_i_en AS full_name_en, pask_koregavimo_data AS updated_at FROM purpose_types"
+
+# Importing status types
+echo "Importing status types"
+curl -f -L --max-redirs 5 --retry 3 -o data-sources/status_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_objektu_statusai.csv
+calculate_md5 data-sources/status_types.psv >> data-sources/data-source-checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/status_types.psv -lco FID=status_id \
+  -sql "SELECT CAST(osta_statusas AS integer(8)) AS status_id, osta_pav AS name, osta_pav_i AS full_name, osta_pav_en AS name_en, osta_pav_i_en AS full_name_en, osta_koregavimo_data AS updated_at FROM status_types"
+
 echo "Finishing parcels data import into SQLite"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/parcels.gpkg -nln parcels -lco GEOMETRY_NAME=geom \
   -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, CAST(polygons.osta_statusas AS integer(8)) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, CAST(polygons.seniunijos_kodas AS integer(8)) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
