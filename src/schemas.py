@@ -180,18 +180,24 @@ class Room(BaseModel):
     address: ShortAddress = Field(description="Address of the room")
 
 
-class ShortParcel(BaseModel):
+class Purpose(BaseModel):
+    purpose_id: int = Field(description="Purpose ID")
+    purpose_group: int = Field(description="Purpose group")
+    name: str = Field(description="Purpose name")
+    full_name: str = Field(description="Purpose full name")
+    full_name_en: str = Field(description="Purpose full name in english")
+
+
+class Parcel(BaseModel):
     unique_number: int = Field(description="Unique number of the parcel")
     cadastral_number: str = Field(description="Cadastral number of the parcel")
     updated_at: datetime.date = Field(description="Date of update of the parcel")
-    purpose_id: int = Field(description="Purpose ID of the parcel")
     status_id: Optional[int] = Field(description="Status ID of the parcel")
     area_ha: float = Field(description="Area of the parcel in hectares")
-
-    municipality: ShortMunicipality = Field(description="Municipality information the parcel belongs to")
-
-class Parcel(ShortParcel):
     geometry: Geometry = Field(description="Polygon geometry of the parcel")
+
+    purpose: Purpose = Field(description="Purpose of the parcel")
+    municipality: ShortMunicipality = Field(description="Municipality information the parcel belongs to")
 
 
 class HealthCheck(BaseModel):

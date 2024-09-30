@@ -64,6 +64,15 @@ _address_short_object = func.json_object(
     type_=JSONB,
 ).label("address")
 
+_purpose_type_object = func.json_object(
+    text("'purpose_id', purpose_types.purpose_id"),
+    text("'purpose_group', purpose_types.purpose_group"),
+    text("'name', purpose_types.name"),
+    text("'full_name', purpose_types.full_name"),
+    text("'full_name_en', purpose_types.full_name_en"),
+    type_=JSONB,
+).label("purpose")
+
 
 class BaseBoundariesService(abc.ABC):
     model_class: Type[models.BaseBoundaries]
@@ -332,6 +341,7 @@ class RoomsService(BaseBoundariesService):
     def _filter_by_code(self, query: Select, code: int) -> Select:
         return query.filter(models.Rooms.code == code)
 
+
 class ParcelsService(BaseBoundariesService):
     model_class = models.Parcels
 
@@ -345,17 +355,17 @@ class ParcelsService(BaseBoundariesService):
             models.Parcels.cadastral_number,
             models.Parcels.area_ha,
             models.Parcels.updated_at,
-            models.Parcels.purpose_id,
             models.Parcels.status_id,
             _municipality_object,
+            _purpose_type_object,
             self._get_geometry_field(models.Parcels.geom, srid, geometry_output_format)
         ]
 
-        return select(*columns).select_from(models.Parcels)\
+        return select(*columns).select_from(models.Parcels) \
             .outerjoin(models.Parcels.municipality) \
+            .outerjoin(models.Parcels.purpose) \
             .outerjoin(models.Municipalities.county)
-            
+
     # Currently not implemented - unique numbers are duplicates
     def _filter_by_code(self, query: Select, code: int) -> Select:
         return query
-

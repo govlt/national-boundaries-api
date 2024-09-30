@@ -108,15 +108,46 @@ class Rooms(Base):
     address = relationship("Addresses", back_populates="rooms")
 
 
+class StatusTypes(Base):
+    __tablename__ = "status_types"
+
+    status_id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+
+    name_en = Column(String, nullable=False)
+    full_name_en = Column(String, nullable=False)
+
+    updated_at = Column(Date, nullable=False)
+
+
+class PurposeTypes(Base):
+    __tablename__ = "purpose_types"
+
+    purpose_id = Column(Integer, primary_key=True)
+    purpose_group = Column(Integer)
+
+    name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+
+    name_en = Column(String, nullable=False)
+    full_name_en = Column(String, nullable=False)
+
+    updated_at = Column(Date, nullable=False)
+
+    parcels = relationship("Parcels", back_populates="purpose")
+
+
 class Parcels(Base):
     __tablename__ = "parcels"
 
     ogc_fid = Column(Integer, primary_key=True)
     unique_number = Column(Integer, nullable=False, index=True)
     cadastral_number = Column(String, nullable=False, index=True)
-    
+
     status_id = Column(Integer, nullable=True)
-    purpose_id = Column(Integer, nullable=False)
+    purpose_id = Column(Integer, ForeignKey("purpose_types.purpose_id"), nullable=False)
+    purpose = relationship("PurposeTypes", back_populates="parcels")
 
     updated_at = Column(Date, nullable=False)
     area_ha = Column(Double, nullable=False)
@@ -127,4 +158,3 @@ class Parcels(Base):
     geom = Column(
         Geometry(srid=3346, nullable=False), nullable=False
     )
-
