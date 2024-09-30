@@ -137,7 +137,7 @@ echo "Finishing parcels data import into SQLite"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/parcels.gpkg -nln parcels -lco GEOMETRY_NAME=geom \
   -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, $(sql_dummy_cast_to_integer polygons.osta_statusas) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, $(sql_dummy_cast_to_integer polygons.seniunijos_kodas) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
 ogrinfo -sql "CREATE INDEX parcels_unique_number ON parcels(unique_number)" boundaries.sqlite
-ogrinfo -sql "CREATE INDEX parcels_cadastral_number ON parcels(cadastral_number)" boundaries.sqlite
+ogrinfo -sql "CREATE INDEX parcels_cadastral_number ON parcels(cadastral_number COLLATE NOCASE)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX parcels_municipality_code ON parcels(municipality_code, unique_number COLLATE NOCASE)" boundaries.sqlite
 
 # Replace back dummy values
