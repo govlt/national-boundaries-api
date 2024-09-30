@@ -200,7 +200,6 @@ class Parcel(BaseModel):
     unique_number: int = Field(description="Unique number of the parcel")
     cadastral_number: str = Field(description="Cadastral number of the parcel")
     updated_at: datetime.date = Field(description="Date of update of the parcel")
-    status_id: Optional[int] = Field(description="Status ID of the parcel")
     area_ha: float = Field(description="Area of the parcel in hectares")
     geometry: Geometry = Field(description="Polygon geometry of the parcel")
 

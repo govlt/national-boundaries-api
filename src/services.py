@@ -376,7 +376,6 @@ class ParcelsService(BaseBoundariesService):
             models.Parcels.cadastral_number,
             models.Parcels.area_ha,
             models.Parcels.updated_at,
-            models.Parcels.status_id,
             _municipality_object,
             _purpose_type_object,
             _status_type_object,
