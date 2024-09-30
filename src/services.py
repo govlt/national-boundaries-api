@@ -5,7 +5,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Transform
-from sqlalchemy import select, Select, func, text, Row, Label, or_, and_, case
+from sqlalchemy import select, Select, func, text, Row, Label, or_, and_, case, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
@@ -144,8 +144,12 @@ class BaseBoundariesService(abc.ABC):
 
         query = query.where(or_(*query_search_filters))
 
-        sort_attr = getattr(self.model_class, sort_by_field)
-        sort_by = operators.collate(sort_attr, "NOCASE")
+        sort_attr: Optional[InstrumentedAttribute] = getattr(self.model_class, sort_by_field)
+
+        if sort_attr is not None and isinstance(sort_attr.type, String):
+            sort_by = operators.collate(sort_attr, "NOCASE")
+        else:
+            sort_by = sort_attr
 
         if sort_order == schemas.SearchSortOrder.desc:
             sort_by = sort_by.desc()
