@@ -14,6 +14,19 @@ calculate_md5() {
     fi
 }
 
+dummy_int="-1"
+
+# Function to set dummy values instead of null
+# ogr2ogr SQL cast function sometimes does not work for null values - it fallbacks to varchar
+sql_dummy_cast_to_integer() {
+  echo "CASE WHEN $1 IS NULL THEN $dummy_int ELSE CAST($1 AS integer(8)) END"
+}
+
+# Function to set dummy values back to null
+set_back_to_null() {
+  ogrinfo -sql "UPDATE $1 SET $2=null WHERE $2=$3" boundaries.sqlite
+}
+
 echo "Starting data processing"
 
 rm -rf boundaries.sqlite data-sources
@@ -122,10 +135,14 @@ ogr2ogr -append -f SQLite boundaries.sqlite data-sources/status_types.psv -lco F
 
 echo "Finishing parcels data import into SQLite"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/parcels.gpkg -nln parcels -lco GEOMETRY_NAME=geom \
-  -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, CAST(polygons.osta_statusas AS integer(8)) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, CAST(polygons.seniunijos_kodas AS integer(8)) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
+  -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, $(sql_dummy_cast_to_integer polygons.osta_statusas) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, $(sql_dummy_cast_to_integer polygons.seniunijos_kodas) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
 ogrinfo -sql "CREATE INDEX parcels_unique_number ON parcels(unique_number)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX parcels_cadastral_number ON parcels(cadastral_number)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX parcels_municipality_code ON parcels(municipality_code, unique_number COLLATE NOCASE)" boundaries.sqlite
+
+# Replace back dummy values
+set_back_to_null parcels status_id $dummy_int
+set_back_to_null parcels eldership_code $dummy_int
 
 echo "Finalizing SQLite database"
 ogrinfo boundaries.sqlite -sql "VACUUM"
