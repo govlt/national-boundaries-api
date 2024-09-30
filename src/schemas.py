@@ -248,6 +248,38 @@ class StringFilter(BaseModel):
     )
 
 
+class NumberFilter(BaseModel):
+    eq: Optional[float] = Field(
+        default=None,
+        description="Filter by equal number",
+    )
+
+    gt: Optional[float] = Field(
+        default=None,
+        description="Filter by greater than number",
+    )
+
+    gte: Optional[float] = Field(
+        default=None,
+        description="Filter by greater than or equal number",
+    )
+
+    lt: Optional[float] = Field(
+        default=None,
+        description="Filter by less than number",
+    )
+
+    lte: Optional[float] = Field(
+        default=None,
+        description="Filter by less than or equal number",
+    )
+
+    lte: Optional[float] = Field(
+        default=None,
+        description="Filter by not equal number",
+    )
+
+
 class GeometryFilterMethod(enum.StrEnum):
     intersects = 'intersects'
     contains = 'contains'
@@ -371,6 +403,64 @@ class ParcelsFilter(BaseModel):
         description="Filter by cadastral number"
     )
 
+    area_ha: Optional[NumberFilter] = Field(
+        default=None,
+        description="Filter by area"
+    )
+
+class PurposeTypeFilter(BaseModel):
+    purpose_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by purpose IDs",
+    )
+
+    purpose_group: Optional[int] = Field(
+        default=None,
+        description="Filter by purpose group"
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
+    )
+
+    full_name_en: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name in english"
+    )
+
+
+class StatusTypesFilter(BaseModel):
+    status_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by status IDs",
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    name_en: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name in english"
+    )
+
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
+    )
+
+    full_name_en: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name in english"
+    )
+
 
 class StreetsFilter(GeneralBoundariesFilter):
     full_name: Optional[StringFilter] = Field(
@@ -451,7 +541,21 @@ class RoomsSearchFilterRequest(AddressesSearchFilterRequest):
     )
 
 
-class ParcelSearchFilterRequest(MunicipalitiesSearchFilterRequest):
+class PurposeTypesSearchFilterRequest(BaseModel):
+    purposes: Optional[PurposeTypeFilter] = Field(
+        default=None,
+        description="Filter by purposes",
+    )
+
+
+class StatusTypesSearchFilterRequest(BaseModel):
+    statuses: Optional[StatusTypesFilter] = Field(
+        default=None,
+        description="Filter by statuses",
+    )
+
+
+class ParcelSearchFilterRequest(MunicipalitiesSearchFilterRequest, PurposeTypesSearchFilterRequest, StatusTypesSearchFilterRequest):
     parcels: Optional[ParcelsFilter] = Field(
         default=None,
         description="Filter by parcels",

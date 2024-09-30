@@ -242,7 +242,77 @@ class RoomsFilter(AddressesFilter):
         geom_field = models.Addresses.geom
 
 
-class ParcelsFilter(MunicipalitiesFilter):
+class PurposeTypesFilter(BaseFilter):
+
+    def apply(
+            self,
+            search_filter: schemas.PurposeTypesSearchFilterRequest,
+            db: Session
+    ) -> Iterator[ColumnExpressionArgument]:
+        yield from super().apply(search_filter, db)
+
+        if purpose_filter := search_filter.purposes:
+            yield from self._apply_purposes_filters(purpose_filter)
+
+    @staticmethod
+    def _apply_purposes_filters(purpose_filter: schemas.PurposeTypeFilter) -> Iterator[ColumnExpressionArgument]:
+
+        purpose_ids = purpose_filter.purpose_ids
+        if purpose_ids and len(purpose_ids) > 0:
+            yield models.PurposeTypes.purpose_id.in_(purpose_ids)
+        
+        if purpose_filter.purpose_group:
+            yield models.PurposeTypes.purpose_group == purpose_filter.purpose_group
+
+        if purpose_filter.name:
+            yield from _filter_by_string_field(string_filter=purpose_filter.name,
+                                               string_field=models.PurposeTypes.name)
+
+        if purpose_filter.full_name:
+            yield from _filter_by_string_field(string_filter=purpose_filter.full_name,
+                                               string_field=models.PurposeTypes.full_name)
+
+        if purpose_filter.full_name_en:
+            yield from _filter_by_string_field(string_filter=purpose_filter.full_name_en,
+                                               string_field=models.PurposeTypes.full_name_en)
+
+class StatusTypesFilter(BaseFilter):
+
+    def apply(
+            self,
+            search_filter: schemas.StatusTypesSearchFilterRequest,
+            db: Session
+    ) -> Iterator[ColumnExpressionArgument]:
+        yield from super().apply(search_filter, db)
+
+        if status_filter := search_filter.statuses:
+            yield from self._apply_status_filters(status_filter)
+
+    @staticmethod
+    def _apply_status_filters(status_filter: schemas.StatusTypesFilter) -> Iterator[ColumnExpressionArgument]:
+
+        status_ids = status_filter.status_ids
+        if status_ids and len(status_ids) > 0:
+            yield models.StatusTypes.status_id.in_(status_ids)
+        
+        if status_filter.name:
+            yield from _filter_by_string_field(string_filter=status_filter.name,
+                                               string_field=models.StatusTypes.name)
+
+        if status_filter.name_en:
+            yield from _filter_by_string_field(string_filter=status_filter.name_en,
+                                               string_field=models.StatusTypes.name_en)
+
+        if status_filter.full_name:
+            yield from _filter_by_string_field(string_filter=status_filter.full_name,
+                                               string_field=models.StatusTypes.full_name)
+
+        if status_filter.full_name_en:
+            yield from _filter_by_string_field(string_filter=status_filter.full_name_en,
+                                               string_field=models.StatusTypes.full_name_en)
+
+
+class ParcelsFilter(MunicipalitiesFilter, PurposeTypesFilter, StatusTypesFilter):
 
     def apply(
             self,
@@ -263,6 +333,10 @@ class ParcelsFilter(MunicipalitiesFilter):
         unique_numbers = parcel_filter.unique_numbers
         if unique_numbers and len(unique_numbers) > 0:
             yield models.Parcels.unique_number.in_(unique_numbers)
+
+        if parcel_filter.area_ha:
+            yield from _filter_by_number_field(number_filter=parcel_filter.area_ha,
+                                               number_field=models.Parcels.area_ha)
 
     class Meta:
         geom_field = models.Parcels.geom
@@ -295,6 +369,22 @@ def _filter_by_string_field(
         yield string_field.istartswith(string_filter.starts)
     elif string_filter.contains:
         yield string_field.icontains(string_filter.contains)
+
+
+def _filter_by_number_field(
+        number_filter: schemas.NumberFilter,
+        number_field: InstrumentedAttribute
+) -> Iterator[ColumnExpressionArgument]:
+    if number_filter.eq:
+        yield number_field == number_filter.eq
+    elif number_filter.lt:
+        yield number_field < number_filter.lt
+    elif number_filter.lte:
+        yield number_field <= number_filter.lte
+    elif number_filter.gt:
+        yield number_field > number_filter.gt
+    elif number_filter.gte:
+        yield number_field >= number_filter.gte
 
 
 class InvalidFilterGeometry(Exception):
