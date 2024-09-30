@@ -120,6 +120,7 @@ class StatusTypes(Base):
 
     updated_at = Column(Date, nullable=False)
 
+    parcels = relationship("Parcels", back_populates="status")
 
 class PurposeTypes(Base):
     __tablename__ = "purpose_types"
@@ -145,9 +146,10 @@ class Parcels(Base):
     unique_number = Column(Integer, nullable=False, index=True)
     cadastral_number = Column(String, nullable=False, index=True)
 
-    status_id = Column(Integer, nullable=True)
+    status_id = Column(Integer, ForeignKey("status_types.status_id"), nullable=True)
     purpose_id = Column(Integer, ForeignKey("purpose_types.purpose_id"), nullable=False)
     purpose = relationship("PurposeTypes", back_populates="parcels")
+    status = relationship("StatusTypes", back_populates="parcels")
 
     updated_at = Column(Date, nullable=False)
     area_ha = Column(Double, nullable=False)

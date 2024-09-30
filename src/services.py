@@ -5,12 +5,13 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Transform
-from sqlalchemy import select, Select, func, text, Row, Label, or_, and_
+from sqlalchemy import select, Select, func, text, Row, Label, or_, and_, case
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
 
 from src import filters, schemas, models, database
+from src.models import StatusTypes
 
 # FastAPI has very poor support for nested types
 # Build jsonb in order to avoid N+1 and deserialization problems
@@ -72,6 +73,22 @@ _purpose_type_object = func.json_object(
     text("'full_name_en', purpose_types.full_name_en"),
     type_=JSONB,
 ).label("purpose")
+
+_status_type_object = case(
+
+    (
+        StatusTypes.status_id.isnot(None),
+        func.json_object(
+            text("'status_id', status_types.status_id"),
+            text("'name', status_types.name"),
+            text("'name_en', status_types.name_en"),
+            text("'full_name', status_types.full_name"),
+            text("'full_name_en', status_types.full_name_en"),
+            type_=JSONB,
+        ),
+    ),
+    else_=None
+).label("status")
 
 
 class BaseBoundariesService(abc.ABC):
@@ -358,12 +375,14 @@ class ParcelsService(BaseBoundariesService):
             models.Parcels.status_id,
             _municipality_object,
             _purpose_type_object,
+            _status_type_object,
             self._get_geometry_field(models.Parcels.geom, srid, geometry_output_format)
         ]
 
         return select(*columns).select_from(models.Parcels) \
             .outerjoin(models.Parcels.municipality) \
             .outerjoin(models.Parcels.purpose) \
+            .outerjoin(models.Parcels.status) \
             .outerjoin(models.Municipalities.county)
 
     # Currently not implemented - unique numbers are duplicates

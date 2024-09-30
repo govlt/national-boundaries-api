@@ -188,6 +188,14 @@ class Purpose(BaseModel):
     full_name_en: str = Field(description="Purpose full name in english")
 
 
+class Status(BaseModel):
+    status_id: int = Field(description="Status ID")
+    name: str = Field(description="Purpose name")
+    name_en: str = Field(description="Purpose name in english")
+    full_name: str = Field(description="Purpose full name")
+    full_name_en: str = Field(description="Purpose full name in english")
+
+
 class Parcel(BaseModel):
     unique_number: int = Field(description="Unique number of the parcel")
     cadastral_number: str = Field(description="Cadastral number of the parcel")
@@ -196,6 +204,7 @@ class Parcel(BaseModel):
     area_ha: float = Field(description="Area of the parcel in hectares")
     geometry: Geometry = Field(description="Polygon geometry of the parcel")
 
+    status: Optional[Status] = Field(description="Status of the parcel")
     purpose: Purpose = Field(description="Purpose of the parcel")
     municipality: ShortMunicipality = Field(description="Municipality information the parcel belongs to")
 
