@@ -377,14 +377,16 @@ def _filter_by_number_field(
 ) -> Iterator[ColumnExpressionArgument]:
     if number_filter.eq:
         yield number_field == number_filter.eq
-    elif number_filter.lt:
-        yield number_field < number_filter.lt
-    elif number_filter.lte:
-        yield number_field <= number_filter.lte
-    elif number_filter.gt:
-        yield number_field > number_filter.gt
-    elif number_filter.gte:
-        yield number_field >= number_filter.gte
+    else:
+        if number_filter.lt:
+            yield number_field < number_filter.lt
+        elif number_filter.lte:
+            yield number_field <= number_filter.lte
+        
+        if number_filter.gt:
+            yield number_field > number_filter.gt
+        elif number_filter.gte:
+            yield number_field >= number_filter.gte
 
 
 class InvalidFilterGeometry(Exception):
