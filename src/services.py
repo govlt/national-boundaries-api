@@ -5,12 +5,13 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Transform
-from sqlalchemy import select, Select, func, text, Row, Label, or_, and_
+from sqlalchemy import select, Select, func, text, Row, Label, or_, and_, case, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
 
 from src import filters, schemas, models, database
+from src.models import StatusTypes
 
 # FastAPI has very poor support for nested types
 # Build jsonb in order to avoid N+1 and deserialization problems
@@ -63,6 +64,38 @@ _address_short_object = func.json_object(
     "street", _flat_street_object,
     type_=JSONB,
 ).label("address")
+
+_purpose_group_object = func.json_object(
+    text("'group_id', purpose_groups.group_id"),
+    text("'name', purpose_groups.name"),
+    text("'full_name', purpose_groups.full_name"),
+    type_=JSONB,
+).label("purpose_group")
+
+_purpose_type_object = func.json_object(
+    text("'purpose_id', purpose_types.purpose_id"),
+    text("'name', purpose_types.name"),
+    text("'full_name', purpose_types.full_name"),
+    text("'full_name_en', purpose_types.full_name_en"),
+    "purpose_group", _purpose_group_object,
+    type_=JSONB,
+).label("purpose")
+
+_status_type_object = case(
+
+    (
+        StatusTypes.status_id.isnot(None),
+        func.json_object(
+            text("'status_id', status_types.status_id"),
+            text("'name', status_types.name"),
+            text("'name_en', status_types.name_en"),
+            text("'full_name', status_types.full_name"),
+            text("'full_name_en', status_types.full_name_en"),
+            type_=JSONB,
+        ),
+    ),
+    else_=None
+).label("status")
 
 
 class BaseBoundariesService(abc.ABC):
@@ -118,8 +151,12 @@ class BaseBoundariesService(abc.ABC):
 
         query = query.where(or_(*query_search_filters))
 
-        sort_attr = getattr(self.model_class, sort_by_field)
-        sort_by = operators.collate(sort_attr, "NOCASE")
+        sort_attr: Optional[InstrumentedAttribute] = getattr(self.model_class, sort_by_field)
+
+        if sort_attr is not None and isinstance(sort_attr.type, String):
+            sort_by = operators.collate(sort_attr, "NOCASE")
+        else:
+            sort_by = sort_attr
 
         if sort_order == schemas.SearchSortOrder.desc:
             sort_by = sort_by.desc()
@@ -131,7 +168,11 @@ class BaseBoundariesService(abc.ABC):
             else:
                 query = query.order_by((sort_attr * 1).desc())
 
-        query = query.order_by(sort_by, self.model_class.code.asc())
+        if hasattr(self.model_class, 'code'):
+            query = query.order_by(sort_by, self.model_class.code.asc())
+        else:
+            query = query.order_by(sort_by)
+
         return paginate(db, query)
 
     def get_by_code(
@@ -327,3 +368,34 @@ class RoomsService(BaseBoundariesService):
 
     def _filter_by_code(self, query: Select, code: int) -> Select:
         return query.filter(models.Rooms.code == code)
+
+
+class ParcelsService(BaseBoundariesService):
+    model_class = models.Parcels
+
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
+        columns = [
+            models.Parcels.unique_number,
+            models.Parcels.cadastral_number,
+            models.Parcels.area_ha,
+            models.Parcels.updated_at,
+            _municipality_object,
+            _purpose_type_object,
+            _status_type_object,
+            self._get_geometry_field(models.Parcels.geom, srid, geometry_output_format)
+        ]
+
+        return select(*columns).select_from(models.Parcels) \
+            .outerjoin(models.Parcels.municipality) \
+            .outerjoin(models.Parcels.purpose) \
+            .outerjoin(models.Parcels.status) \
+            .outerjoin(models.PurposeTypes.purpose_group) \
+            .outerjoin(models.Municipalities.county)
+
+    # Currently not implemented - unique numbers are duplicates
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query

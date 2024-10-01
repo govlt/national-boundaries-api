@@ -679,3 +679,287 @@ openapi_examples_rooms_filtering: Dict[str, Example] = {
         }
     }
 }
+
+openapi_examples_parcels_filtering: Dict[str, Example] = {
+    "example_parcels_unique_numbers": {
+        "summary": "Filter by unique numbers",
+        "description": "Retrieve data for parcels by specifying parcel unique numbers.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "unique_numbers": [110100090085, 110100210172]
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_cadastral_number_contains": {
+        "summary": "Filter by parcel cadastral number containing substring",
+        "description": "Retrieve data for parcels where parcel cadastral number contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "cadastral_number": {
+                            "contains": "1101/0028"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_cadastral_number_exact": {
+        "summary": "Filter by parcel exact cadastral number",
+        "description": "Retrieve data for parcels matching the exact parcel cadastral number.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "cadastral_number": {
+                            "exact": "1101/0028:0196"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_cadastral_number_starts": {
+        "summary": "Filter by parcel cadastral number starting with prefix",
+        "description": "Retrieve data for parcels where parcel cadastral number starts with the specified prefix.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "cadastral_number": {
+                            "starts": "1101/0028"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_area_equal": {
+        "summary": "Filter by parcel area equal to",
+        "description": "Retrieve data for parcels where parcel area is equal to number.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "area_ha": {
+                            "eq": 0.01
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_parcel_area_combo": {
+        "summary": "Filter by parcel area less/greater than",
+        "description": "Retrieve data for parcels where parcel area is less / less or equal / greater / greater or equal to numbers.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "area_ha": {
+                            "gte": 0.01,
+                            "lt": 0.02
+                        }
+                    }
+                },
+                {
+                    "parcels": {
+                        "area_ha": {
+                            "gt": 1000,
+                            "lte": 2000
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+openapi_examples_purpose_groups_filtering: Dict[str, Example] = {
+    "example_purpose_groups_ids": {
+        "summary": "Filter by purpose group IDs",
+        "description": "Retrieve data for purpose groups by specifying purpose group IDs.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "group_ids": [9]
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_group_name_contains": {
+        "summary": "Filter by purpose type name containing substring",
+        "description": "Retrieve data for purpose types where purpose type name contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "name": {
+                            "contains": "naudojimo"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_group_name_exact": {
+        "summary": "Filter by purpose group exact name",
+        "description": "Retrieve data for purpose groups matching the exact purpose group name.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "name": {
+                            "exact": "žemės naudojimo"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_group_name_starts": {
+        "summary": "Filter by purpose group name starting with prefix",
+        "description": "Retrieve data for purpose groups where purpose group name starts with the specified prefix.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "name": {
+                            "starts": "žemės"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+openapi_examples_purpose_types_filtering: Dict[str, Example] = {
+    "example_purpose_types_ids": {
+        "summary": "Filter by purpose IDs",
+        "description": "Retrieve data for purpose types by specifying purpose type IDs.",
+        "value": {
+            "filters": [
+                {
+                    "purposes": {
+                        "purpose_ids": [610, 995]
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_types_name_contains": {
+        "summary": "Filter by purpose type name containing substring",
+        "description": "Retrieve data for purpose types where purpose type name contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "purposes": {
+                        "name": {
+                            "contains": "ūkio"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_types_name_exact": {
+        "summary": "Filter by purpose type exact name",
+        "description": "Retrieve data for purpose types matching the exact purpose type name.",
+        "value": {
+            "filters": [
+                {
+                    "purposes": {
+                        "name": {
+                            "exact": "žemės ūkio"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_types_name_starts": {
+        "summary": "Filter by purpose type name starting with prefix",
+        "description": "Retrieve data for purpose types where purpose type name starts with the specified prefix.",
+        "value": {
+            "filters": [
+                {
+                    "purposes": {
+                        "name": {
+                            "starts": "žemės"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+
+openapi_examples_status_types_filtering: Dict[str, Example] = {
+    "example_status_types_ids": {
+        "summary": "Filter by status IDs",
+        "description": "Retrieve data for status types by specifying status type IDs.",
+        "value": {
+            "filters": [
+                {
+                    "statuses": {
+                        "status_ids": [21, 22]
+                    }
+                }
+            ]
+        }
+    },
+    "example_status_types_name_contains": {
+        "summary": "Filter by status type name containing substring",
+        "description": "Retrieve data for status types where status type name contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "statuses": {
+                        "name": {
+                            "contains": "performuotas"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_status_types_name_exact": {
+        "summary": "Filter by status type exact name",
+        "description": "Retrieve data for status types matching the exact status type name.",
+        "value": {
+            "filters": [
+                {
+                    "statuses": {
+                        "name": {
+                            "exact": "daiktas performuotas"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_status_types_name_starts": {
+        "summary": "Filter by status type name starting with prefix",
+        "description": "Retrieve data for status types where status type name starts with the specified prefix.",
+        "value": {
+            "filters": [
+                {
+                    "statuses": {
+                        "name": {
+                            "starts": "daiktas"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

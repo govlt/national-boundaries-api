@@ -14,6 +14,19 @@ calculate_md5() {
     fi
 }
 
+dummy_int="-1"
+
+# Function to set dummy values instead of null
+# ogr2ogr SQL cast function sometimes does not work for null values - it fallbacks to varchar
+sql_dummy_cast_to_integer() {
+  echo "CASE WHEN $1 IS NULL THEN $dummy_int ELSE CAST($1 AS integer(8)) END"
+}
+
+# Function to set dummy values back to null
+set_back_to_null() {
+  ogrinfo -sql "UPDATE $1 SET $2=null WHERE $2=$3" boundaries.sqlite
+}
+
 echo "Starting data processing"
 
 rm -rf boundaries.sqlite data-sources
@@ -93,6 +106,50 @@ calculate_md5 data-sources/rooms.psv >> data-sources/data-source-checksums.txt
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/rooms.psv -lco FID=code \
   -sql "SELECT CAST(PAT_KODAS AS integer(8)) as code, CAST(AOB_KODAS AS integer(8)) AS address_code, PATALPOS_NR AS room_number, PAT_NUO AS created_at FROM rooms"
 ogrinfo -sql "CREATE INDEX rooms_address_code ON rooms(address_code, room_number)" boundaries.sqlite
+
+
+# This step pulls data for each municipality individually because the is no complete geojson with all municipalities included.
+echo "Importing parcel points for each municipality"
+curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" | csvcut -d "|" -c "SAV_KODAS" | tail -n +2 | while read -r code; do
+  echo "Converting https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
+  curl -f -L --max-redirs 5 --retry 3 -o "data-sources/parcels-$code.zip" "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
+  calculate_md5 "data-sources/parcels-$code.zip" >> data-sources/data-source-checksums.txt
+  unzip data-sources/parcels-"$code".zip -d data-sources
+
+  ogr2ogr -append -f GPKG data-sources/parcels.gpkg "data-sources/gis_pub_parcels_$code.json" -nln polygons
+done
+
+# Importing purpose groups
+echo "Importing purpose groups"
+curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_groups.psv https://www.registrucentras.lt/aduomenys/?byla=klas_Paskirties_grupes.csv
+calculate_md5 data-sources/purpose_groups.psv >> data-sources/data-source-checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_groups.psv -lco FID=group_id \
+  -sql "SELECT CAST(pasg_grupe AS integer(8)) AS group_id, pasg_pav AS name, pasg_pav_i AS full_name, pasg_koregavimo_data AS updated_at FROM purpose_groups"
+
+# Importing purpose types
+echo "Importing purpose types"
+curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_paskirciu_tipai.csv
+calculate_md5 data-sources/purpose_types.psv >> data-sources/data-source-checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_types.psv -lco FID=purpose_id \
+  -sql "SELECT CAST(pask_tipas AS integer(8)) AS purpose_id, CAST(pasg_grupe AS integer(8)) AS purpose_group_id, pask_pav AS name, pask_pav_i AS full_name, pask_pav_i_en AS full_name_en, pask_koregavimo_data AS updated_at FROM purpose_types"
+
+# Importing status types
+echo "Importing status types"
+curl -f -L --max-redirs 5 --retry 3 -o data-sources/status_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_objektu_statusai.csv
+calculate_md5 data-sources/status_types.psv >> data-sources/data-source-checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/status_types.psv -lco FID=status_id \
+  -sql "SELECT CAST(osta_statusas AS integer(8)) AS status_id, osta_pav AS name, osta_pav_i AS full_name, osta_pav_en AS name_en, osta_pav_i_en AS full_name_en, osta_koregavimo_data AS updated_at FROM status_types"
+
+echo "Finishing parcels data import into SQLite"
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/parcels.gpkg -nln parcels -lco GEOMETRY_NAME=geom \
+  -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, $(sql_dummy_cast_to_integer polygons.osta_statusas) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, $(sql_dummy_cast_to_integer polygons.seniunijos_kodas) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
+ogrinfo -sql "CREATE INDEX parcels_unique_number ON parcels(unique_number)" boundaries.sqlite
+ogrinfo -sql "CREATE INDEX parcels_cadastral_number ON parcels(cadastral_number COLLATE NOCASE)" boundaries.sqlite
+ogrinfo -sql "CREATE INDEX parcels_municipality_code ON parcels(municipality_code, unique_number COLLATE NOCASE)" boundaries.sqlite
+
+# Replace back dummy values
+set_back_to_null parcels status_id $dummy_int
+set_back_to_null parcels eldership_code $dummy_int
 
 echo "Finalizing SQLite database"
 ogrinfo boundaries.sqlite -sql "VACUUM"

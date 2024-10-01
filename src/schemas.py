@@ -28,6 +28,13 @@ class RoomsSearchSortBy(enum.StrEnum):
     created_at = 'created_at'
 
 
+class ParcelsSearchSortBy(enum.StrEnum):
+    unique_number = 'unique_number'
+    cadastral_number = 'cadastral_number'
+    updated_at = 'updated_at'
+    area_ha = 'area_ha'
+
+
 class SearchSortOrder(str, enum.Enum):
     asc = 'asc'
     desc = 'desc'
@@ -173,6 +180,40 @@ class Room(BaseModel):
     address: ShortAddress = Field(description="Address of the room")
 
 
+class PurposeGroup(BaseModel):
+    group_id: int = Field(description="Purpose group ID")
+    name: str = Field(description="Purpose group name")
+    full_name: str = Field(description="Purpose group full name")
+
+
+class Purpose(BaseModel):
+    purpose_id: int = Field(description="Purpose ID")
+    purpose_group: Optional[PurposeGroup] = Field(description="Purpose group")
+    name: str = Field(description="Purpose name")
+    full_name: str = Field(description="Purpose full name")
+    full_name_en: str = Field(description="Purpose full name in english")
+
+
+class Status(BaseModel):
+    status_id: int = Field(description="Status ID")
+    name: str = Field(description="Status name")
+    name_en: str = Field(description="Status name in english")
+    full_name: str = Field(description="Status full name")
+    full_name_en: str = Field(description="Status full name in english")
+
+
+class Parcel(BaseModel):
+    unique_number: int = Field(description="Unique number of the parcel")
+    cadastral_number: str = Field(description="Cadastral number of the parcel")
+    updated_at: datetime.date = Field(description="Date of update of the parcel")
+    area_ha: float = Field(description="Area of the parcel in hectares")
+    geometry: Geometry = Field(description="Polygon geometry of the parcel")
+
+    status: Optional[Status] = Field(description="Status of the parcel")
+    purpose: Purpose = Field(description="Purpose of the parcel")
+    municipality: ShortMunicipality = Field(description="Municipality information the parcel belongs to")
+
+
 class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
     healthy: bool = Field(description="Health status of the service")
@@ -210,6 +251,38 @@ class StringFilter(BaseModel):
         examples=[
             ""
         ],
+    )
+
+
+class NumberFilter(BaseModel):
+    eq: Optional[float] = Field(
+        default=None,
+        description="Filter by equal number",
+    )
+
+    gt: Optional[float] = Field(
+        default=None,
+        description="Filter by greater than number",
+    )
+
+    gte: Optional[float] = Field(
+        default=None,
+        description="Filter by greater than or equal number",
+    )
+
+    lt: Optional[float] = Field(
+        default=None,
+        description="Filter by less than number",
+    )
+
+    lte: Optional[float] = Field(
+        default=None,
+        description="Filter by less than or equal number",
+    )
+
+    lte: Optional[float] = Field(
+        default=None,
+        description="Filter by not equal number",
     )
 
 
@@ -322,6 +395,91 @@ class RoomsFilter(BaseModel):
     )
 
 
+class ParcelsFilter(BaseModel):
+    unique_numbers: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by unique numbers",
+        examples=[
+            []
+        ],
+    )
+
+    cadastral_number: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by cadastral number"
+    )
+
+    area_ha: Optional[NumberFilter] = Field(
+        default=None,
+        description="Filter by area"
+    )
+
+class PurposeTypeFilter(BaseModel):
+    purpose_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by purpose IDs",
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
+    )
+
+    full_name_en: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name in english"
+    )
+
+
+class PurposeGroupFilter(BaseModel):
+    group_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by purpose group IDs",
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
+    )
+
+
+class StatusTypesFilter(BaseModel):
+    status_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by status IDs",
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    name_en: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name in english"
+    )
+
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
+    )
+
+    full_name_en: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name in english"
+    )
+
+
 class StreetsFilter(GeneralBoundariesFilter):
     full_name: Optional[StringFilter] = Field(
         default=None,
@@ -401,6 +559,34 @@ class RoomsSearchFilterRequest(AddressesSearchFilterRequest):
     )
 
 
+class PurposeGroupsSearchFilterRequest(BaseModel):
+    purpose_groups: Optional[PurposeGroupFilter] = Field(
+        default=None,
+        description="Filter by purpose groups",
+    )
+
+
+class PurposeTypesSearchFilterRequest(PurposeGroupsSearchFilterRequest):
+    purposes: Optional[PurposeTypeFilter] = Field(
+        default=None,
+        description="Filter by purposes",
+    )
+
+
+class StatusTypesSearchFilterRequest(BaseModel):
+    statuses: Optional[StatusTypesFilter] = Field(
+        default=None,
+        description="Filter by statuses",
+    )
+
+
+class ParcelSearchFilterRequest(MunicipalitiesSearchFilterRequest, PurposeTypesSearchFilterRequest, StatusTypesSearchFilterRequest):
+    parcels: Optional[ParcelsFilter] = Field(
+        default=None,
+        description="Filter by parcels",
+    )
+
+
 class BaseSearchRequest(abc.ABC, BaseModel):
     filters: List[BaseSearchFilterRequest]
 
@@ -451,4 +637,11 @@ class RoomsSearchRequest(BaseSearchRequest):
     filters: List[RoomsSearchFilterRequest] = Field(
         default=[],
         description="A list of filters to apply for searching rooms, combined using OR logic.",
+    )
+
+
+class ParcelsSearchRequest(BaseSearchRequest):
+    filters: List[ParcelSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching parcels, combined using OR logic.",
     )

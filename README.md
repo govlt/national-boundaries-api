@@ -2,7 +2,7 @@
 
 Access comprehensive data on national boundaries and addresses registered in the Republic of Lithuania. This API
 provides detailed information and geometries about counties, municipalities, elderships, residential areas, streets,
-addresses, and rooms.
+addresses, rooms and parcels.
 
 ## Key features
 

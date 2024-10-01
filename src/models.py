@@ -36,6 +36,7 @@ class Municipalities(BaseBoundaries):
     elderships = relationship("Elderships", back_populates="municipality")
     residential_areas = relationship("ResidentialAreas", back_populates="municipality")
     addresses = relationship("Addresses", back_populates="municipality")
+    parcels = relationship("Parcels", back_populates="municipality")
 
 
 class Elderships(BaseBoundaries):
@@ -105,3 +106,73 @@ class Rooms(Base):
 
     address_code = Column(Integer, ForeignKey("addresses.code"))
     address = relationship("Addresses", back_populates="rooms")
+
+
+class StatusTypes(Base):
+    __tablename__ = "status_types"
+
+    status_id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+
+    name_en = Column(String, nullable=False)
+    full_name_en = Column(String, nullable=False)
+
+    updated_at = Column(Date, nullable=False)
+
+    parcels = relationship("Parcels", back_populates="status")
+
+
+class PurposeGroups(Base):
+    __tablename__ = "purpose_groups"
+
+    group_id = Column(Integer, primary_key=True)
+
+    name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+
+    updated_at = Column(Date, nullable=False)
+
+    purpose_types = relationship("PurposeTypes", back_populates="purpose_group")
+
+
+class PurposeTypes(Base):
+    __tablename__ = "purpose_types"
+
+    purpose_id = Column(Integer, primary_key=True)
+
+    purpose_group_id = Column(Integer, ForeignKey("purpose_groups.group_id"), nullable=True)
+    purpose_group = relationship("PurposeGroups", back_populates="purpose_types")
+
+    name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+
+    name_en = Column(String, nullable=False)
+    full_name_en = Column(String, nullable=False)
+
+    updated_at = Column(Date, nullable=False)
+
+    parcels = relationship("Parcels", back_populates="purpose")
+
+
+class Parcels(Base):
+    __tablename__ = "parcels"
+
+    ogc_fid = Column(Integer, primary_key=True)
+    unique_number = Column(Integer, nullable=False, index=True)
+    cadastral_number = Column(String, nullable=False, index=True)
+
+    status_id = Column(Integer, ForeignKey("status_types.status_id"), nullable=True)
+    purpose_id = Column(Integer, ForeignKey("purpose_types.purpose_id"), nullable=False)
+    purpose = relationship("PurposeTypes", back_populates="parcels")
+    status = relationship("StatusTypes", back_populates="parcels")
+
+    updated_at = Column(Date, nullable=False)
+    area_ha = Column(Double, nullable=False)
+
+    municipality_code = Column(Integer, ForeignKey("municipalities.code"))
+    municipality = relationship("Municipalities", back_populates="parcels")
+
+    geom = Column(
+        Geometry(srid=3346, nullable=False), nullable=False
+    )
