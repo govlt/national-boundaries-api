@@ -242,7 +242,35 @@ class RoomsFilter(AddressesFilter):
         geom_field = models.Addresses.geom
 
 
-class PurposeTypesFilter(BaseFilter):
+class PurposeGroupsFilter(BaseFilter):
+
+    def apply(
+            self,
+            search_filter: schemas.PurposeGroupsSearchFilterRequest,
+            db: Session
+    ) -> Iterator[ColumnExpressionArgument]:
+        yield from super().apply(search_filter, db)
+
+        if groups_filter := search_filter.purpose_groups:
+            yield from self._apply_purpose_groups_filters(groups_filter)
+
+    @staticmethod
+    def _apply_purpose_groups_filters(groups_filter: schemas.PurposeGroupFilter) -> Iterator[ColumnExpressionArgument]:
+
+        group_ids = groups_filter.group_ids
+        if group_ids and len(group_ids) > 0:
+            yield models.PurposeGroups.group_id.in_(group_ids)
+
+        if groups_filter.name:
+            yield from _filter_by_string_field(string_filter=groups_filter.name,
+                                               string_field=models.PurposeGroups.name)
+
+        if groups_filter.full_name:
+            yield from _filter_by_string_field(string_filter=groups_filter.full_name,
+                                               string_field=models.PurposeGroups.full_name)
+
+
+class PurposeTypesFilter(PurposeGroupsFilter):
 
     def apply(
             self,
@@ -261,8 +289,6 @@ class PurposeTypesFilter(BaseFilter):
         if purpose_ids and len(purpose_ids) > 0:
             yield models.PurposeTypes.purpose_id.in_(purpose_ids)
         
-        if purpose_filter.purpose_group:
-            yield models.PurposeTypes.purpose_group == purpose_filter.purpose_group
 
         if purpose_filter.name:
             yield from _filter_by_string_field(string_filter=purpose_filter.name,

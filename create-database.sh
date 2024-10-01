@@ -119,12 +119,19 @@ curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" |
   ogr2ogr -append -f GPKG data-sources/parcels.gpkg "data-sources/gis_pub_parcels_$code.json" -nln polygons
 done
 
+# Importing purpose groups
+echo "Importing purpose groups"
+curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_groups.psv https://www.registrucentras.lt/aduomenys/?byla=klas_Paskirties_grupes.csv
+calculate_md5 data-sources/purpose_groups.psv >> data-sources/data-source-checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_groups.psv -lco FID=group_id \
+  -sql "SELECT CAST(pasg_grupe AS integer(8)) AS group_id, pasg_pav AS name, pasg_pav_i AS full_name, pasg_koregavimo_data AS updated_at FROM purpose_groups"
+
 # Importing purpose types
 echo "Importing purpose types"
 curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_paskirciu_tipai.csv
 calculate_md5 data-sources/purpose_types.psv >> data-sources/data-source-checksums.txt
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_types.psv -lco FID=purpose_id \
-  -sql "SELECT CAST(pask_tipas AS integer(8)) AS purpose_id, CAST(pasg_grupe AS integer(8)) AS purpose_group, pask_pav AS name, pask_pav_i AS full_name, pask_pav_i_en AS full_name_en, pask_koregavimo_data AS updated_at FROM purpose_types"
+  -sql "SELECT CAST(pask_tipas AS integer(8)) AS purpose_id, CAST(pasg_grupe AS integer(8)) AS purpose_group_id, pask_pav AS name, pask_pav_i AS full_name, pask_pav_i_en AS full_name_en, pask_koregavimo_data AS updated_at FROM purpose_types"
 
 # Importing status types
 echo "Importing status types"

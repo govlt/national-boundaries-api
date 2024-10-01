@@ -65,12 +65,19 @@ _address_short_object = func.json_object(
     type_=JSONB,
 ).label("address")
 
+_purpose_group_object = func.json_object(
+    text("'group_id', purpose_groups.group_id"),
+    text("'name', purpose_groups.name"),
+    text("'full_name', purpose_groups.full_name"),
+    type_=JSONB,
+).label("purpose_group")
+
 _purpose_type_object = func.json_object(
     text("'purpose_id', purpose_types.purpose_id"),
-    text("'purpose_group', purpose_types.purpose_group"),
     text("'name', purpose_types.name"),
     text("'full_name', purpose_types.full_name"),
     text("'full_name_en', purpose_types.full_name_en"),
+    "purpose_group", _purpose_group_object,
     type_=JSONB,
 ).label("purpose")
 
@@ -386,6 +393,7 @@ class ParcelsService(BaseBoundariesService):
             .outerjoin(models.Parcels.municipality) \
             .outerjoin(models.Parcels.purpose) \
             .outerjoin(models.Parcels.status) \
+            .outerjoin(models.PurposeTypes.purpose_group) \
             .outerjoin(models.Municipalities.county)
 
     # Currently not implemented - unique numbers are duplicates

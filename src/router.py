@@ -331,6 +331,7 @@ def parcels_search(
                 **constants.openapi_examples_parcels_filtering,
                 **constants.openapi_examples_purpose_types_filtering,
                 **constants.openapi_examples_status_types_filtering,
+                **constants.openapi_examples_purpose_groups_filtering,
                 **constants.openapi_examples_municipalities_filtering,
                 **constants.openapi_examples_geometry_filtering,
             })

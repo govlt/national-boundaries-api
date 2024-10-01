@@ -122,11 +122,27 @@ class StatusTypes(Base):
 
     parcels = relationship("Parcels", back_populates="status")
 
+
+class PurposeGroups(Base):
+    __tablename__ = "purpose_groups"
+
+    group_id = Column(Integer, primary_key=True)
+
+    name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+
+    updated_at = Column(Date, nullable=False)
+
+    purpose_types = relationship("PurposeTypes", back_populates="purpose_group")
+
+
 class PurposeTypes(Base):
     __tablename__ = "purpose_types"
 
     purpose_id = Column(Integer, primary_key=True)
-    purpose_group = Column(Integer)
+
+    purpose_group_id = Column(Integer, ForeignKey("purpose_groups.group_id"), nullable=True)
+    purpose_group = relationship("PurposeGroups", back_populates="purpose_types")
 
     name = Column(String, nullable=False)
     full_name = Column(String, nullable=False)

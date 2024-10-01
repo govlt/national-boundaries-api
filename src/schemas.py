@@ -180,9 +180,15 @@ class Room(BaseModel):
     address: ShortAddress = Field(description="Address of the room")
 
 
+class PurposeGroup(BaseModel):
+    group_id: int = Field(description="Purpose group ID")
+    name: str = Field(description="Purpose group name")
+    full_name: str = Field(description="Purpose group full name")
+
+
 class Purpose(BaseModel):
     purpose_id: int = Field(description="Purpose ID")
-    purpose_group: int = Field(description="Purpose group")
+    purpose_group: Optional[PurposeGroup] = Field(description="Purpose group")
     name: str = Field(description="Purpose name")
     full_name: str = Field(description="Purpose full name")
     full_name_en: str = Field(description="Purpose full name in english")
@@ -190,10 +196,10 @@ class Purpose(BaseModel):
 
 class Status(BaseModel):
     status_id: int = Field(description="Status ID")
-    name: str = Field(description="Purpose name")
-    name_en: str = Field(description="Purpose name in english")
-    full_name: str = Field(description="Purpose full name")
-    full_name_en: str = Field(description="Purpose full name in english")
+    name: str = Field(description="Status name")
+    name_en: str = Field(description="Status name in english")
+    full_name: str = Field(description="Status full name")
+    full_name_en: str = Field(description="Status full name in english")
 
 
 class Parcel(BaseModel):
@@ -414,11 +420,6 @@ class PurposeTypeFilter(BaseModel):
         description="Filter by purpose IDs",
     )
 
-    purpose_group: Optional[int] = Field(
-        default=None,
-        description="Filter by purpose group"
-    )
-
     name: Optional[StringFilter] = Field(
         default=None,
         description="Filter by name"
@@ -432,6 +433,23 @@ class PurposeTypeFilter(BaseModel):
     full_name_en: Optional[StringFilter] = Field(
         default=None,
         description="Filter by full name in english"
+    )
+
+
+class PurposeGroupFilter(BaseModel):
+    group_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by purpose group IDs",
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
     )
 
 
@@ -541,7 +559,14 @@ class RoomsSearchFilterRequest(AddressesSearchFilterRequest):
     )
 
 
-class PurposeTypesSearchFilterRequest(BaseModel):
+class PurposeGroupsSearchFilterRequest(BaseModel):
+    purpose_groups: Optional[PurposeGroupFilter] = Field(
+        default=None,
+        description="Filter by purpose groups",
+    )
+
+
+class PurposeTypesSearchFilterRequest(PurposeGroupsSearchFilterRequest):
     purposes: Optional[PurposeTypeFilter] = Field(
         default=None,
         description="Filter by purposes",

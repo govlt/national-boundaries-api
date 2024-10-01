@@ -780,6 +780,67 @@ openapi_examples_parcels_filtering: Dict[str, Example] = {
     }
 }
 
+openapi_examples_purpose_groups_filtering: Dict[str, Example] = {
+    "example_purpose_groups_ids": {
+        "summary": "Filter by purpose group IDs",
+        "description": "Retrieve data for purpose groups by specifying purpose group IDs.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "group_ids": [9]
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_group_name_contains": {
+        "summary": "Filter by purpose type name containing substring",
+        "description": "Retrieve data for purpose types where purpose type name contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "name": {
+                            "contains": "naudojimo"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_group_name_exact": {
+        "summary": "Filter by purpose group exact name",
+        "description": "Retrieve data for purpose groups matching the exact purpose group name.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "name": {
+                            "exact": "žemės naudojimo"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "example_purpose_group_name_starts": {
+        "summary": "Filter by purpose group name starting with prefix",
+        "description": "Retrieve data for purpose groups where purpose group name starts with the specified prefix.",
+        "value": {
+            "filters": [
+                {
+                    "purpose_groups": {
+                        "name": {
+                            "starts": "žemės"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
 openapi_examples_purpose_types_filtering: Dict[str, Example] = {
     "example_purpose_types_ids": {
         "summary": "Filter by purpose IDs",
@@ -825,8 +886,8 @@ openapi_examples_purpose_types_filtering: Dict[str, Example] = {
         }
     },
     "example_purpose_types_name_starts": {
-        "summary": "Filter by purpose type cadastral number starting with prefix",
-        "description": "Retrieve data for purpose types where purpose type cadastral number starts with the specified prefix.",
+        "summary": "Filter by purpose type name starting with prefix",
+        "description": "Retrieve data for purpose types where purpose type name starts with the specified prefix.",
         "value": {
             "filters": [
                 {
@@ -887,8 +948,8 @@ openapi_examples_status_types_filtering: Dict[str, Example] = {
         }
     },
     "example_status_types_name_starts": {
-        "summary": "Filter by status type cadastral number starting with prefix",
-        "description": "Retrieve data for status types where status type cadastral number starts with the specified prefix.",
+        "summary": "Filter by status type name starting with prefix",
+        "description": "Retrieve data for status types where status type name starts with the specified prefix.",
         "value": {
             "filters": [
                 {
