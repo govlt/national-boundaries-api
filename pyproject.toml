@@ -17,6 +17,7 @@ sqlean-py = "^3.45.1"
 sqlakeyset = "^2.0.1716332987"
 gunicorn = "^23.0.0"
 uvicorn-worker = "^0.2.0"
+pyyaml = "^6.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
