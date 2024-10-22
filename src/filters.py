@@ -356,6 +356,10 @@ class ParcelsFilter(MunicipalitiesFilter, PurposeTypesFilter, StatusTypesFilter)
             yield from _filter_by_string_field(string_filter=parcel_filter.cadastral_number,
                                                string_field=models.Parcels.cadastral_number)
 
+        if parcel_filter.unique_number:
+            yield from _filter_by_string_field(string_filter=parcel_filter.unique_number,
+                                               string_field=models.Parcels.unique_number)
+
         unique_numbers = parcel_filter.unique_numbers
         if unique_numbers and len(unique_numbers) > 0:
             yield models.Parcels.unique_number.in_(unique_numbers)

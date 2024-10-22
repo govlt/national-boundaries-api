@@ -694,6 +694,21 @@ openapi_examples_parcels_filtering: Dict[str, Example] = {
             ]
         }
     },
+    "example_parcels_unique_number_contains": {
+        "summary": "Filter by unique number containing substring",
+        "description": "Retrieve data for parcels where parcel unique number contains the specified substring.",
+        "value": {
+            "filters": [
+                {
+                    "parcels": {
+                        "unique_numbers": {
+                            "contains": "11010028"
+                        }
+                    }
+                }
+            ]
+        }
+    },
     "example_parcel_cadastral_number_contains": {
         "summary": "Filter by parcel cadastral number containing substring",
         "description": "Retrieve data for parcels where parcel cadastral number contains the specified substring.",
