@@ -404,6 +404,11 @@ class ParcelsFilter(BaseModel):
         ],
     )
 
+    unique_number: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by unique number",
+    )
+
     cadastral_number: Optional[StringFilter] = Field(
         default=None,
         description="Filter by cadastral number"
