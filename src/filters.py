@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Iterator
+from typing import Iterator, Optional
 
 from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
 from sqlalchemy.orm import Session, InstrumentedAttribute
@@ -354,11 +354,13 @@ class ParcelsFilter(MunicipalitiesFilter, PurposeTypesFilter, StatusTypesFilter)
     def _apply_parcels_filters(parcel_filter: schemas.ParcelsFilter) -> Iterator[ColumnExpressionArgument]:
         if parcel_filter.cadastral_number:
             yield from _filter_by_string_field(string_filter=parcel_filter.cadastral_number,
-                                               string_field=models.Parcels.cadastral_number)
+                                               string_field=models.Parcels.cadastral_number,
+                                               skip_lower_case=True)
 
         if parcel_filter.unique_number:
             yield from _filter_by_string_field(string_filter=parcel_filter.unique_number,
-                                               string_field=models.Parcels.unique_number)
+                                               string_field=models.Parcels.unique_number,
+                                               skip_lower_case=True)
 
         unique_numbers = parcel_filter.unique_numbers
         if unique_numbers and len(unique_numbers) > 0:
@@ -391,10 +393,14 @@ def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type[Generi
 
 def _filter_by_string_field(
         string_filter: schemas.StringFilter,
-        string_field: InstrumentedAttribute
+        string_field: InstrumentedAttribute,
+        skip_lower_case: Optional[bool] = None
 ) -> Iterator[ColumnExpressionArgument]:
     if string_filter.exact:
-        yield func.lower(string_field) == string_filter.exact.lower()
+        if skip_lower_case:
+            yield string_field == string_filter.exact
+        else:
+            yield func.lower(string_field) == string_filter.exact.lower()
     elif string_filter.starts:
         yield string_field.istartswith(string_filter.starts)
     elif string_filter.contains:
