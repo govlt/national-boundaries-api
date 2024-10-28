@@ -394,7 +394,7 @@ def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type[Generi
 def _filter_by_string_field(
         string_filter: schemas.StringFilter,
         string_field: InstrumentedAttribute,
-        skip_lower_case = None
+        skip_lower_case: bool = None
 ) -> Iterator[ColumnExpressionArgument]:
     if string_filter.exact:
         if skip_lower_case:
