@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Iterator
+from typing import Iterator, Optional
 
 from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
 from sqlalchemy.orm import Session, InstrumentedAttribute
@@ -394,7 +394,7 @@ def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type[Generi
 def _filter_by_string_field(
         string_filter: schemas.StringFilter,
         string_field: InstrumentedAttribute,
-        skip_lower_case: bool = None
+        skip_lower_case: Optional[bool] = None
 ) -> Iterator[ColumnExpressionArgument]:
     if string_filter.exact:
         if skip_lower_case:
