@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/osgeo/gdal:ubuntu-full-3.9.1
     concurrency: check-for-data-source-updates
-    timeout-minutes: 45
+    timeout-minutes: 120
     permissions:
       contents: read
     outputs:
