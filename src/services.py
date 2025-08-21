@@ -227,7 +227,8 @@ class MunicipalitiesService(BaseBoundariesService):
                       models.Municipalities.area_ha,
                       models.Municipalities.created_at,
                       _county_object,
-                  ] + ([self._get_geometry_field(models.Municipalities.geom, srid)] if srid else [])
+                  ] + ([self._get_geometry_field(models.Municipalities.geom, srid,
+                                                 geometry_output_format)] if srid and geometry_output_format else [])
 
         return select(*columns).outerjoin_from(
             models.Municipalities, models.Municipalities.county
@@ -252,7 +253,8 @@ class EldershipsService(BaseBoundariesService):
                       models.Elderships.area_ha,
                       models.Elderships.created_at,
                       _municipality_object,
-                  ] + ([self._get_geometry_field(models.Elderships.geom, srid)] if srid else [])
+                  ] + ([self._get_geometry_field(models.Elderships.geom, srid,
+                                                 geometry_output_format)] if srid and geometry_output_format else [])
 
         return select(*columns).outerjoin_from(
             models.Elderships, models.Elderships.municipality
@@ -276,8 +278,8 @@ class ResidentialAreasService(BaseBoundariesService):
                       models.ResidentialAreas.area_ha,
                       models.ResidentialAreas.created_at,
                       _municipality_object,
-                  ] + ([self._get_geometry_field(models.ResidentialAreas.geom, srid)] if srid else [])
-
+                  ] + ([self._get_geometry_field(models.ResidentialAreas.geom, srid,
+                                                 geometry_output_format)] if srid and geometry_output_format else [])
         return select(*columns).outerjoin_from(
             models.ResidentialAreas, models.ResidentialAreas.municipality
         ).outerjoin(models.Municipalities.county)
@@ -302,7 +304,8 @@ class StreetsService(BaseBoundariesService):
                       models.Streets.full_name,
                       models.Streets.created_at,
                       _residential_area_object,
-                  ] + ([self._get_geometry_field(models.Streets.geom, srid)] if srid else [])
+                  ] + ([self._get_geometry_field(models.Streets.geom, srid,
+                                                 geometry_output_format)] if srid and geometry_output_format else [])
 
         return select(*columns).outerjoin_from(
             models.Streets, models.Streets.residential_area
