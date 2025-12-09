@@ -45,12 +45,16 @@ _residential_area_object = func.json_object(
     type_=JSONB,
 ).label("residential_area")
 
-_flat_street_object = func.json_object(
-    text("'code', streets.code"),
-    text("'name', streets.name"),
-    text("'full_name', streets.full_name"),
-    text("'feature_id', streets.feature_id"),
-    type_=JSONB,
+_flat_street_object = case(
+    (models.Streets.code.isnot(None),
+     func.json_object(
+         text("'code', streets.code"),
+         text("'name', streets.name"),
+         text("'full_name', streets.full_name"),
+         text("'feature_id', streets.feature_id"),
+         type_=JSONB,
+     )),
+    else_=None
 ).label("street")
 
 _address_short_object = func.json_object(
