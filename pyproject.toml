@@ -6,7 +6,7 @@ authors = ["Karolis Vyčius <karolis@vycius.lt>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.14"
+python = "^3.12"
 fastapi = "^0.115.0"
 uvicorn = "^0.31.0"
 fastapi-pagination = "^0.12.25"
