@@ -6,17 +6,17 @@ authors = ["Karolis Vyčius <karolis@vycius.lt>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
-fastapi = "^0.115.0"
-uvicorn = "^0.31.0"
-fastapi-pagination = "^0.12.25"
+python = "^3.14"
+fastapi = "~0.125"
+uvicorn = "^0.38.0"
+fastapi-pagination = "^0.15.3"
 sqlalchemy = "^2.0.30"
-geoalchemy2 = "^0.15.1"
+geoalchemy2 = "^0.18.1"
 sentry-sdk = { extras = ["fastapi", "sqlalchemy"], version = "^2.5.1" }
 sqlean-py = "^3.45.1"
 sqlakeyset = "^2.0.1716332987"
 gunicorn = "^23.0.0"
-uvicorn-worker = "^0.2.0"
+uvicorn-worker = "^0.4.0"
 pyyaml = "^6.0.2"
 
 
