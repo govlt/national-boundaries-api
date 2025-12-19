@@ -21,7 +21,7 @@ jobs:
         run: apt-get update && apt-get install -y csvkit
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create database
         run: chmod +x create-database.sh && ./create-database.sh
