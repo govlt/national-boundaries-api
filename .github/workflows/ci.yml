@@ -53,7 +53,7 @@ jobs:
   validate-api-docker-build:
     name: Validate if docker image builds
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     permissions:
       contents: read
     steps:
