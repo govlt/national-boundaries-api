@@ -84,15 +84,11 @@ ogr2ogr -f GPKG data-sources/addresses.gpkg data-sources/addresses-information.p
 # this step pulls data for each municipality individually.
 echo "Importing address points for each municipality"
 
-curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" | csvcut -d "|" -c "SAV_KODAS" | tail -n +2 | while read -r code; do
-  echo "Converting https://www.registrucentras.lt/aduomenys/?byla=adr_gra_$code.json"
-  curl -f -L --max-redirs 5 --retry 3 -o "data-sources/addresses-$code.json" "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_$code.json"
-  calculate_md5 "data-sources/addresses-$code.json" >> data-sources/data-source-checksums.txt
+curl -f -L --max-redirs 5 --retry 3 -o "data-sources/addresses.json.zip" "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_adresai_LT.zip"
+calculate_md5 data-sources/addresses.json.zip >> data-sources/data-source-checksums.txt
 
-  ogr2ogr -append -f GPKG data-sources/addresses.gpkg "data-sources/addresses-$code.json" -nln points
-done
+ogr2ogr -append -f GPKG data-sources/addresses.gpkg "/vsizip/data-sources/addresses.json.zip" -nln points
 
-echo "Finishing addresses data import into SQLite"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/addresses.gpkg -lco FID=feature_id -nln addresses \
   -sql "SELECT points.fid AS feature_id, points.geom, points.AOB_KODAS as code, CAST(info.sav_kodas AS integer(8)) AS municipality_code, points.gyv_kodas AS residential_area_code, points.gat_kodas AS street_code, info.nr AS plot_or_building_number, info.pasto_kodas AS postal_code, NULLIF(info.korpuso_nr, '') AS building_block_number, points.AOB_R AS created_at FROM points INNER JOIN info USING (AOB_KODAS) ORDER BY AOB_KODAS"
 ogrinfo -sql "CREATE UNIQUE INDEX addresses_code ON addresses(code)" boundaries.sqlite
@@ -114,9 +110,8 @@ curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" |
   echo "Converting https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
   curl -f -L --max-redirs 5 --retry 3 -o "data-sources/parcels-$code.zip" "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
   calculate_md5 "data-sources/parcels-$code.zip" >> data-sources/data-source-checksums.txt
-  unzip data-sources/parcels-"$code".zip -d data-sources
 
-  ogr2ogr -append -f GPKG data-sources/parcels.gpkg "data-sources/gis_pub_parcels_$code.json" -nln polygons
+  ogr2ogr -append -f GPKG data-sources/parcels.gpkg "/vsizip/data-sources/parcels-$code.zip" -nln polygons
 done
 
 # Importing purpose groups
