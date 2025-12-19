@@ -7,7 +7,7 @@ set -euo pipefail
 # -L: Follow redirects
 # --retry 5: Retry up to 5 times
 # --retry-delay 5: Wait 5 seconds between retries
-# --retry-connrefused: Retry even if the server refuses connection
+# --retry-all-errors: Retry on all errors
 # --connect-timeout 20: Abort if connection takes too long
 # -A: Custom User Agent with project attribution
 CURL_OPTS=(
@@ -15,7 +15,7 @@ CURL_OPTS=(
     --max-redirs 5
     --retry 5
     --retry-delay 5
-    --retry-connrefused
+    --retry-all-errors
     --connect-timeout 20
     -A "NationalBoundariesAPI/1.0 (+https://github.com/govlt/national-boundaries-api)"
 )
