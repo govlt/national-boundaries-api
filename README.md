@@ -72,7 +72,7 @@ docker-image["Docker image\n<a href="https://github.com/govlt/national-boundarie
 To embark on your development journey, follow these simple steps:
 
 - **Install Python 3.12+:** [Download Python](https://www.python.org/downloads/)
-- **Install Poetry 1.8+:** [Download Poetry](https://python-poetry.org/docs/#installation)
+- **Install uv 0.9+:** [Download uv](https://docs.astral.sh/uv/)
 - **Install SpatialLite 5+**: [Download SpatialLite](https://www.gaia-gis.it/fossil/libspatialite/index)
 - **Install GDAL 3.9+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
   your computer)
@@ -80,7 +80,7 @@ To embark on your development journey, follow these simple steps:
 ### Setup
 
 1. Set up a Python virtual environment.
-2. Install dependencies with Poetry.
+2. Install dependencies with uv.
 3. Create the database by running `create-database.sh` or download the database file
    from [this link](https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite) and
    place it in the project root directory.
@@ -90,7 +90,7 @@ To embark on your development journey, follow these simple steps:
 Execute the following command, replacing `SPATIALITE_LIBRARY_PATH` with the path to SpatialLite on your computer:
 
 ```shell
-SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" poetry run python -m uvicorn src.main:app --reload
+SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" uv run python -m uvicorn src.main:app --reload
 ```
 
 ## License

@@ -40,7 +40,7 @@ jobs:
         uses: ./.github/actions/prepare-python-environment
 
       - name: Lint using ruff
-        run: poetry run ruff check src --output-format sarif --output-file ruff-results.sarif --target-version py312
+        run: uv run ruff check src --output-format sarif --output-file ruff-results.sarif --target-version py312
         continue-on-error: true
 
       - name: Upload ESLint analysis results to GitHub
@@ -81,10 +81,10 @@ jobs:
         uses: ./.github/actions/prepare-python-environment
 
       - name: Generate openapi.json
-        run: poetry run python src/extract-openapi.py src.main:app --out openapi.json
+        run: uv run python src/extract-openapi.py src.main:app --out openapi.json
 
       - name: Generate openapi.yaml
-        run: poetry run python src/extract-openapi.py src.main:app --out openapi.yaml
+        run: uv run python src/extract-openapi.py src.main:app --out openapi.yaml
 
       - name: Generate ReDoc html
         run: npx @redocly/cli build-docs openapi.yaml --theme.openapi.jsonSampleExpandLevel all

@@ -1,21 +1,12 @@
 name: Prepare Python environment
-description: Setup python, poetry, SpatialLite and install dependencies
+description: Setup python, uv and install dependencies
 
 runs:
   using: composite
   steps:
-    - name: Install poetry
-      uses: abatilo/actions-poetry@v4
-      with:
-        poetry-version: '2.2.*'
-
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: pyproject.toml
-        cache: poetry
-
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v7
     - name: Install dependencies
-      run: poetry install --no-root
+      run: uv sync --frozen --no-install-project
       shell: bash
 
