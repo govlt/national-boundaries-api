@@ -1,8 +1,25 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-# Function to calculate MD5 checksum
+# Curl options for resilience:
+# -f: Fail silently on HTTP errors
+# -L: Follow redirects
+# --retry 5: Retry up to 5 times
+# --retry-delay 5: Wait 5 seconds between retries
+# --retry-connrefused: Retry even if the server refuses connection
+# --connect-timeout 20: Abort if connection takes too long
+# -A: Custom User Agent with project attribution
+CURL_OPTS=(
+    -f -L
+    --max-redirs 5
+    --retry 5
+    --retry-delay 5
+    --retry-connrefused
+    --connect-timeout 20
+    -A "NationalBoundariesAPI/1.0 (+https://github.com/govlt/national-boundaries-api)"
+)
+
 calculate_md5() {
     local file="$1"
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -14,15 +31,25 @@ calculate_md5() {
     fi
 }
 
+fetch_resource() {
+    local url="$1"
+    local output_path="$2"
+
+    echo "Downloading: $url -> $output_path"
+
+    # Run curl with the resilient options array
+    curl "${CURL_OPTS[@]}" -o "$output_path" "$url"
+
+    # Calculate checksum immediately
+    calculate_md5 "$output_path" >> data-sources/data-source-checksums.txt
+}
+
 dummy_int="-1"
 
-# Function to set dummy values instead of null
-# ogr2ogr SQL cast function sometimes does not work for null values - it fallbacks to varchar
 sql_dummy_cast_to_integer() {
   echo "CASE WHEN $1 IS NULL THEN $dummy_int ELSE CAST($1 AS integer(8)) END"
 }
 
-# Function to set dummy values back to null
 set_back_to_null() {
   ogrinfo -sql "UPDATE $1 SET $2=null WHERE $2=$3" boundaries.sqlite
 }
@@ -30,62 +57,49 @@ set_back_to_null() {
 echo "Starting data processing"
 
 rm -rf boundaries.sqlite data-sources
-
 mkdir -p data-sources
+touch data-sources/data-source-checksums.txt
 
 echo "Importing counties data into SQLite"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/counties.json https://www.registrucentras.lt/aduomenys/?byla=adr_gra_apskritys.json
-calculate_md5 data-sources/counties.json >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_apskritys.json" "data-sources/counties.json"
 ogr2ogr -f SQLite boundaries.sqlite data-sources/counties.json -dsco SPATIALITE=YES -lco FID=feature_id -lco GEOMETRY_NAME=geom \
   -sql "SELECT FID AS feature_id, CAST(APS_KODAS AS integer(8)) AS code, APS_PAV as name, APS_PLOTAS as area_ha, APS_R AS created_at FROM counties"
 ogrinfo -sql "CREATE UNIQUE INDEX counties_code ON counties(code)" boundaries.sqlite
 
 echo "Importing municipalities data into SQLite"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/municipalities.json https://www.registrucentras.lt/aduomenys/?byla=adr_gra_savivaldybes.json
-calculate_md5 data-sources/municipalities.json >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_savivaldybes.json" "data-sources/municipalities.json"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/municipalities.json -lco FID=feature_id -lco GEOMETRY_NAME=geom \
   -sql "SELECT FID AS feature_id, CAST(SAV_KODAS AS integer(8)) AS code, SAV_PAV as name, SAV_PLOTAS as area_ha, CAST(APS_KODAS AS integer(8)) as county_code, SAV_R AS created_at FROM municipalities"
 ogrinfo -sql "CREATE UNIQUE INDEX municipalities_code ON municipalities(code)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX municipalities_county_code ON municipalities(county_code)" boundaries.sqlite
 
 echo "Importing elderships data into SQLite"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/elderships.json https://www.registrucentras.lt/aduomenys/?byla=adr_gra_seniunijos.json
-calculate_md5 data-sources/elderships.json >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_seniunijos.json" "data-sources/elderships.json"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/elderships.json -lco FID=feature_id -lco GEOMETRY_NAME=geom \
   -sql "SELECT FID AS feature_id, CAST(SEN_KODAS AS integer(8)) AS code, SEN_PAV as name, SEN_PLOTAS as area_ha, CAST(SAV_KODAS AS integer(8)) AS municipality_code, SEN_R AS created_at FROM elderships"
 ogrinfo -sql "CREATE UNIQUE INDEX elderships_code ON elderships(code)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX elderships_municipality_code_and_name ON elderships(municipality_code, name COLLATE NOCASE)" boundaries.sqlite
 
 echo "Importing residential areas data into SQLite"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/residential_areas.json https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gyvenamosios_vietoves.json
-calculate_md5 data-sources/residential_areas.json >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gyvenamosios_vietoves.json" "data-sources/residential_areas.json"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/residential_areas.json -lco FID=feature_id -lco GEOMETRY_NAME=geom \
   -sql "SELECT FID AS feature_id, GYV_KODAS AS code, GYV_PAV as name, PLOTAS as area_ha, CAST(SAV_KODAS AS integer(8)) AS municipality_code, GYV_R as created_at FROM residential_areas"
 ogrinfo -sql "CREATE UNIQUE INDEX residential_areas_code ON residential_areas(code)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX residential_municipality_code_and_name ON residential_areas(municipality_code, name COLLATE NOCASE)" boundaries.sqlite
 
 echo "Importing streets data into SQLite"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/streets.json https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gatves.json
-calculate_md5 data-sources/streets.json >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gatves.json" "data-sources/streets.json"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/streets.json -lco FID=feature_id -lco GEOMETRY_NAME=geom \
   -sql "SELECT FID AS feature_id, GAT_KODAS AS code, GAT_PAV as name, GAT_PAV_PI AS full_name, GAT_ILGIS as length_m, GYV_KODAS AS residential_area_code, GTV_R AS created_at FROM streets"
 ogrinfo -sql "CREATE UNIQUE INDEX streets_code ON streets(code)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX streets_residential_area_code_and_name ON streets(residential_area_code, name COLLATE NOCASE)" boundaries.sqlite
 
 echo "Importing addresses data into SQLite"
-
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/addresses-information.psv https://www.registrucentras.lt/aduomenys/?byla=adr_stat_lr.csv
-calculate_md5 data-sources/addresses-information.psv >> data-sources/data-source-checksums.txt
-
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_stat_lr.csv" "data-sources/addresses-information.psv"
 ogr2ogr -f GPKG data-sources/addresses.gpkg data-sources/addresses-information.psv -nln info
 
-# The complete geojson data with all municipalities is updated only once a year. However,
-# when downloaded per municipality, it is updated every month. To ensure we have the latest data,
-# this step pulls data for each municipality individually.
 echo "Importing address points for each municipality"
-
-curl -f -L --max-redirs 5 --retry 3 -o "data-sources/addresses.json.zip" "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_adresai_LT.zip"
-calculate_md5 data-sources/addresses.json.zip >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_adresai_LT.zip" "data-sources/addresses.json.zip"
 
 ogr2ogr -append -f GPKG data-sources/addresses.gpkg "/vsizip/data-sources/addresses.json.zip" -nln points
 
@@ -97,41 +111,33 @@ ogrinfo -sql "CREATE INDEX addresses_residential_area_code ON addresses(resident
 ogrinfo -sql "CREATE INDEX addresses_street_code ON addresses(street_code, plot_or_building_number)" boundaries.sqlite
 
 echo "Importing rooms"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/rooms.psv https://www.registrucentras.lt/aduomenys/?byla=adr_pat_lr.csv
-calculate_md5 data-sources/rooms.psv >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_pat_lr.csv" "data-sources/rooms.psv"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/rooms.psv -lco FID=code \
   -sql "SELECT CAST(PAT_KODAS AS integer(8)) as code, CAST(AOB_KODAS AS integer(8)) AS address_code, PATALPOS_NR AS room_number, PAT_NUO AS created_at FROM rooms"
 ogrinfo -sql "CREATE INDEX rooms_address_code ON rooms(address_code, room_number)" boundaries.sqlite
 
-
-# This step pulls data for each municipality individually because the is no complete geojson with all municipalities included.
 echo "Importing parcel points for each municipality"
-curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" | csvcut -d "|" -c "SAV_KODAS" | tail -n +2 | while read -r code; do
-  echo "Converting https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
-  curl -f -L --max-redirs 5 --retry 3 -o "data-sources/parcels-$code.zip" "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
-  calculate_md5 "data-sources/parcels-$code.zip" >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" "data-sources/municipality_list.csv"
 
+csvcut -d "|" -c "SAV_KODAS" "data-sources/municipality_list.csv" | tail -n +2 | while read -r code; do
+  [[ -z "$code" ]] && continue
+  echo "Processing municipality code: $code"
+  fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip" "data-sources/parcels-$code.zip"
   ogr2ogr -append -f GPKG data-sources/parcels.gpkg "/vsizip/data-sources/parcels-$code.zip" -nln polygons
 done
 
-# Importing purpose groups
 echo "Importing purpose groups"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_groups.psv https://www.registrucentras.lt/aduomenys/?byla=klas_Paskirties_grupes.csv
-calculate_md5 data-sources/purpose_groups.psv >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=klas_Paskirties_grupes.csv" "data-sources/purpose_groups.psv"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_groups.psv -lco FID=group_id \
   -sql "SELECT CAST(pasg_grupe AS integer(8)) AS group_id, pasg_pav AS name, pasg_pav_i AS full_name, pasg_koregavimo_data AS updated_at FROM purpose_groups"
 
-# Importing purpose types
 echo "Importing purpose types"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/purpose_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_paskirciu_tipai.csv
-calculate_md5 data-sources/purpose_types.psv >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_paskirciu_tipai.csv" "data-sources/purpose_types.psv"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/purpose_types.psv -lco FID=purpose_id \
   -sql "SELECT CAST(pask_tipas AS integer(8)) AS purpose_id, CAST(pasg_grupe AS integer(8)) AS purpose_group_id, pask_pav AS name, pask_pav_i AS full_name, pask_pav_i_en AS full_name_en, pask_koregavimo_data AS updated_at FROM purpose_types"
 
-# Importing status types
 echo "Importing status types"
-curl -f -L --max-redirs 5 --retry 3 -o data-sources/status_types.psv https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_objektu_statusai.csv
-calculate_md5 data-sources/status_types.psv >> data-sources/data-source-checksums.txt
+fetch_resource "https://www.registrucentras.lt/aduomenys/?byla=klas_NTR_objektu_statusai.csv" "data-sources/status_types.psv"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/status_types.psv -lco FID=status_id \
   -sql "SELECT CAST(osta_statusas AS integer(8)) AS status_id, osta_pav AS name, osta_pav_i AS full_name, osta_pav_en AS name_en, osta_pav_i_en AS full_name_en, osta_koregavimo_data AS updated_at FROM status_types"
 
