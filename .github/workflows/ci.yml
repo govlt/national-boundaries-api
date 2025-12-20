@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   actionlint:
     name: Lint GitHub Actions workflows
@@ -15,7 +18,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Check workflow files
         run: |
@@ -34,7 +37,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Prepare environment
         uses: ./.github/actions/prepare-python-environment
@@ -44,7 +47,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload ESLint analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
         with:
           sarif_file: ruff-results.sarif
           wait-for-processing: true
@@ -58,10 +61,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Build & tag docker image
-        uses: AplinkosMinisterija/reusable-workflows/.github/actions/docker-build-tag-push@main
+        uses: AplinkosMinisterija/reusable-workflows/.github/actions/docker-build-tag-push@3d4c282a76b3de6b69a3be130133b877a8333ec9 # main
         with:
           environment: test
           file: Dockerfile
@@ -75,7 +78,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Prepare environment
         uses: ./.github/actions/prepare-python-environment
@@ -90,21 +93,21 @@ jobs:
         run: npx @redocly/cli build-docs openapi.yaml --theme.openapi.jsonSampleExpandLevel all
 
       - name: Upload openapi.yaml artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: openapi.yaml
           path: openapi.yaml
           if-no-files-found: error
 
       - name: Upload openapi.json artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: openapi.json
           path: openapi.json
           if-no-files-found: error
 
       - name: Upload redoc-static.html artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: redoc-static.html
           path: redoc-static.html
@@ -117,7 +120,7 @@ jobs:
           cp openapi.yaml openapi.json dist
 
       - name: Upload to Cloudflare pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
