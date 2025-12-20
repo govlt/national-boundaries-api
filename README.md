@@ -19,6 +19,18 @@ addresses, rooms and parcels.
 8. **Completely Open Source and Free**: Join our community of contributors and users. The entire project is open-source
    and free of restrictions..
 
+## Data Hierarchy
+
+The API organizes data into the following administrative and address levels:
+
+1. **Counties** (Apskritys)
+2. **Municipalities** (Savivaldybės)
+3. **Elderships** (Seniūnijos)
+4. **Residential Areas** (Gyvenamosios vietovės)
+5. **Streets** (Gatvės)
+6. **Addresses** (Adresai)
+7. **Rooms/Parcels** (Patalpos ir sklypai)
+
 ## Self-hosting
 
 Host National Boundaries and Addresses API of Lithuania on your own infrastructure.
@@ -62,9 +74,9 @@ version [here](https://github.com/govlt/national-boundaries-api/releases/latest/
 
 ```mermaid
 flowchart TD
-    ar["State Enterprise Centre of Registers\n<a href="https://www.registrucentras.lt/p/1187">Address Registry raw data</a>"]-->transform["<a href="https://github.com/govlt/national-boundaries-api/blob/main/create-database.sh">Create SQLite database</a>"]-->|"<a href="https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite">boundaries.sqlite</a>"|docker-image
+    ar["State Enterprise Centre of Registers<br><a href="https://www.registrucentras.lt/p/1187">Address Registry raw data</a>"]-->transform["<a href="https://github.com/govlt/national-boundaries-api/blob/main/create-database.sh">Create SQLite database</a>"]-->|"<a href="https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite">boundaries.sqlite</a>"|docker-image
 
-docker-image["Docker image\n<a href="https://github.com/govlt/national-boundaries-api/pkgs/container/national-boundaries-api">national-boundaries-api</a>"]
+docker-image["Docker image<br><a href="https://github.com/govlt/national-boundaries-api/pkgs/container/national-boundaries-api">national-boundaries-api</a>"]
 ```
 
 ## Getting Started Development
