@@ -44,7 +44,8 @@ jobs:
           revoke_token: true
 
       - name: Get next version
-        uses: reecetech/version-increment@2024.4.4
+        # reecetech/version-increment@2024.10.1
+        uses: reecetech/version-increment@a29aa752dc3b8118a2dc2ed93faf0e95a73a9c7e
         id: version
         with:
           scheme: semver
