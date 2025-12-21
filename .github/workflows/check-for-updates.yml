@@ -18,7 +18,7 @@ jobs:
       diff: ${{ steps.comparison.outputs.diff }}
     steps:
       - name: Install csvkit
-        run: apt-get update && apt-get install -y csvkit
+        run: apt-get update && apt-get install -y csvkit wget curl
 
       - name: Checkout code
         uses: actions/checkout@v6
