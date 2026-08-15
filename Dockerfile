@@ -1,5 +1,5 @@
 # Stage 1: Prepare SQLite database
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.12.1 AS database-builder
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.13.2 AS database-builder
 WORKDIR /opt/database
 
 RUN apt-get update && apt-get install -y csvkit && rm -rf /var/lib/apt/lists/*
