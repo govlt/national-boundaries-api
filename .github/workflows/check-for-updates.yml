@@ -23,8 +23,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
+      # downloads go out through a proxy. curl reads ALL_PROXY natively
       - name: Create database
         run: chmod +x create-database.sh && ./create-database.sh
+        env:
+          ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
 
       - name: Upload data-source-checksums.txt artifact
         uses: actions/upload-artifact@v4
