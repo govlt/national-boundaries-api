@@ -2,9 +2,13 @@
 FROM ghcr.io/osgeo/gdal:ubuntu-full-3.13.2 AS database-builder
 WORKDIR /opt/database
 
-RUN apt-get update && apt-get install -y csvkit && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y csvkit curl wget && rm -rf /var/lib/apt/lists/*
 COPY create-database.sh ./create-database.sh
-RUN bash create-database.sh
+
+# Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
+# downloads go out through a proxy. curl reads ALL_PROXY natively
+RUN --mount=type=secret,id=all_proxy \
+    ALL_PROXY="$(cat /run/secrets/all_proxy 2>/dev/null || true)" bash create-database.sh
 
 # Stage 2: Build Python environment
 FROM ghcr.io/astral-sh/uv:0.9-python3.14-trixie AS builder

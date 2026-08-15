@@ -63,12 +63,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Build & tag docker image
-        uses: AplinkosMinisterija/reusable-workflows/.github/actions/docker-build-tag-push@3d4c282a76b3de6b69a3be130133b877a8333ec9 # main
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build docker image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          environment: test
+          context: .
           file: Dockerfile
+          platforms: linux/amd64
+          # Empty value is rejected by the action, so omit the secret entirely when unset (fork PRs)
+          secrets: ${{ secrets.DATA_SOURCE_PROXY_URL != '' && format('all_proxy={0}', secrets.DATA_SOURCE_PROXY_URL) || '' }}
           push: false
+          pull: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max,ignore-error=true
 
   generate-redoc:
     name: Generate ReDoc
