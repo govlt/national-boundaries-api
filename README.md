@@ -63,6 +63,7 @@ Additional docker image environment options:
 | `SENTRY_ENVIRONMENT` | Specifies the environment for Sentry (e.g., production, staging, development).                                                                                                                                                                                               | `production`  |
 | `ROOT_URL`           | The root URL of the application. Only change if the application is mounted below a specific URL path.                                                                                                                                                                        |               |
 | `WORKERS`            | The number of Uvicorn worker processes to run. Adjust based on workload and available resources. If you have a cluster of machines with Kubernetes, Docker Swarm, or another similar system, handle replication at the cluster level and keep a single worker per container. | `1`           |
+| `SQL_ECHO`           | Log every SQL statement and connection pool event to stdout. Useful when debugging queries, but costly under load, so it is off by default. Set to `1`, `true` or `yes` to enable.                                                                                          |               |
 
 ### SQLite Database
 
@@ -83,10 +84,10 @@ docker-image["Docker image<br><a href="https://github.com/govlt/national-boundar
 
 To embark on your development journey, follow these simple steps:
 
-- **Install Python 3.12+:** [Download Python](https://www.python.org/downloads/)
-- **Install uv 0.9+:** [Download uv](https://docs.astral.sh/uv/)
+- **Install Python 3.14+:** [Download Python](https://www.python.org/downloads/)
+- **Install uv 0.12+:** [Download uv](https://docs.astral.sh/uv/)
 - **Install SpatialLite 5+**: [Download SpatialLite](https://www.gaia-gis.it/fossil/libspatialite/index)
-- **Install GDAL 3.9+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
+- **Install GDAL 3.13+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
   your computer)
 
 ### Setup

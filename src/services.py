@@ -173,7 +173,10 @@ class BaseBoundariesService(abc.ABC):
         else:
             query = query.order_by(sort_by)
 
-        return paginate(db, query)
+        # fastapi-pagination de-duplicates rows by default, which needs hashable values and so
+        # fails on the GeoJSON/JSONB geometry column. These are flat SELECTs with no collection
+        # joins, so there is nothing to de-duplicate anyway.
+        return paginate(db, query, unique=False)
 
     def get_by_code(
             self,

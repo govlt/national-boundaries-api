@@ -24,10 +24,10 @@ jobs:
       digest: ${{ steps.docker.outputs.digest }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Set Docker metadata
         id: meta
@@ -69,14 +69,14 @@ jobs:
           sbom: false
 
       - name: Generate docker image attestation
-        uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018 # v1.4.4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ghcr.io/govlt/national-boundaries-api
           subject-digest: ${{ steps.docker.outputs.digest }}
           push-to-registry: true
 
       - name: Extract files from Docker image
-        uses: shrink/actions-docker-extract@04c17c51a5b9fd93b7aed2e05e86c8fe2d90ee52 # v3.1.0
+        uses: shrink/actions-docker-extract@f1ef61065b78731fe3310b4e84e511f6a927a77e # v4.0.0
         id: extract
         with:
           image: ghcr.io/govlt/national-boundaries-api@${{ steps.docker.outputs.digest }}
@@ -84,21 +84,21 @@ jobs:
           destination: app
 
       - name: Upload boundaries.sqlite artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: boundaries.sqlite
           path: app/boundaries.sqlite
           if-no-files-found: error
 
       - name: Upload data-source-checksums.txt artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: data-source-checksums.txt
           path: app/data-source-checksums.txt
           if-no-files-found: error
 
       - name: Upload artifacts to GitHub release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           make_latest: ${{ contains(github.ref, 'pre') && 'false' ||  'true' }}
