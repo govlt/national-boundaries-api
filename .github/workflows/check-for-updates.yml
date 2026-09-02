@@ -9,7 +9,7 @@ jobs:
   check-for-updates:
     name: Check for updates
     runs-on: ubuntu-latest
-    container: ghcr.io/osgeo/gdal:ubuntu-full-3.13.2
+    container: ghcr.io/osgeo/gdal:ubuntu-full-3.13.3
     concurrency: check-for-data-source-updates
     timeout-minutes: 120
     permissions:
@@ -21,7 +21,7 @@ jobs:
         run: apt-get update && apt-get install -y csvkit wget curl
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
       # downloads go out through a proxy. curl reads ALL_PROXY natively
@@ -31,14 +31,14 @@ jobs:
           ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
 
       - name: Upload data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: data-source-checksums.txt
           path: data-sources/data-source-checksums.txt
           if-no-files-found: error
 
       - name: Upload boundaries.sqlite artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: boundaries.sqlite
           path: boundaries.sqlite
@@ -48,7 +48,7 @@ jobs:
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
 
       - name: Upload published-data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: published-data-source-checksums.txt
           path: published-data-source-checksums.txt

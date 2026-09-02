@@ -1,5 +1,5 @@
 # Stage 1: Prepare SQLite database
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.13.2 AS database-builder
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.13.3 AS database-builder
 WORKDIR /opt/database
 
 RUN apt-get update && apt-get install -y csvkit curl wget && rm -rf /var/lib/apt/lists/*
@@ -11,7 +11,7 @@ RUN --mount=type=secret,id=all_proxy \
     ALL_PROXY="$(cat /run/secrets/all_proxy 2>/dev/null || true)" bash create-database.sh
 
 # Stage 2: Build Python environment
-FROM ghcr.io/astral-sh/uv:0.9-python3.14-trixie AS builder
+FROM ghcr.io/astral-sh/uv:0.12-python3.14-trixie AS builder
 
 WORKDIR /app
 
@@ -41,7 +41,8 @@ ENV VIRTUAL_ENV=/app/.venv \
     SENTRY_DSN="" \
     SENTRY_ENVIRONMENT="production" \
     ROOT_URL="" \
-    WORKERS=1
+    WORKERS=1 \
+    SQL_ECHO=""
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY src/ src/
