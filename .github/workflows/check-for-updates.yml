@@ -16,6 +16,30 @@ jobs:
       contents: read
     outputs:
       diff: ${{ steps.comparison.outputs.diff }}
+    services:
+      # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so data
+      # source downloads go out through a VPN tunnel with an HTTP proxy on top.
+      # The runner waits for the container's built-in healthcheck (VPN up) before
+      # running any steps; the job container reaches it at http://gluetun:8888
+      gluetun:
+        image: qmcgaw/gluetun:v3.41.3
+        env:
+          VPN_SERVICE_PROVIDER: ${{ secrets.VPN_SERVICE_PROVIDER }}
+          VPN_TYPE: wireguard
+          WIREGUARD_PRIVATE_KEY: ${{ secrets.VPN_WIREGUARD_PRIVATE_KEY }}
+          SERVER_COUNTRIES: Lithuania
+          HTTPPROXY: "on"
+          # Give each VPN server 30s to come up instead of the default 6s
+          HEALTH_VPN_DURATION_INITIAL: "30s"
+        # Health flags override the image's single-retry healthcheck: 2min grace
+        # period, then 12 more tries - up to ~4min for the VPN to establish
+        options: >-
+          --cap-add=NET_ADMIN
+          --device /dev/net/tun
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 12
+          --health-start-period 120s
     steps:
       - name: Install csvkit
         run: apt-get update && apt-get install -y csvkit wget curl
@@ -23,12 +47,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
-      # downloads go out through a proxy. curl reads ALL_PROXY natively
+      # curl reads ALL_PROXY natively; see the gluetun service above
       - name: Create database
         run: chmod +x create-database.sh && ./create-database.sh
         env:
-          ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+          ALL_PROXY: http://gluetun:8888
 
       - name: Upload data-source-checksums.txt artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -59,12 +59,43 @@ jobs:
     timeout-minutes: 90
     permissions:
       contents: read
+    services:
+      # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so data
+      # source downloads go out through a VPN tunnel with an HTTP proxy on top.
+      # The runner waits for the container's built-in healthcheck (VPN up) before
+      # running any steps. Fork PRs have no secrets, so gluetun never turns
+      # healthy and the job fails at startup - same outcome as the proxyless
+      # downloads failing, just earlier
+      gluetun:
+        image: qmcgaw/gluetun:v3.41.3
+        env:
+          VPN_SERVICE_PROVIDER: ${{ secrets.VPN_SERVICE_PROVIDER }}
+          VPN_TYPE: wireguard
+          WIREGUARD_PRIVATE_KEY: ${{ secrets.VPN_WIREGUARD_PRIVATE_KEY }}
+          SERVER_COUNTRIES: Lithuania
+          HTTPPROXY: "on"
+          # Give each VPN server 30s to come up instead of the default 6s
+          HEALTH_VPN_DURATION_INITIAL: "30s"
+        ports:
+          - 8888:8888
+        # Health flags override the image's single-retry healthcheck: 2min grace
+        # period, then 12 more tries - up to ~4min for the VPN to establish
+        options: >-
+          --cap-add=NET_ADMIN
+          --device /dev/net/tun
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 12
+          --health-start-period 120s
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+        with:
+          # Host networking so build RUNs can reach the gluetun proxy on localhost
+          driver-opts: network=host
 
       - name: Build docker image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
@@ -72,8 +103,11 @@ jobs:
           context: .
           file: Dockerfile
           platforms: linux/amd64
-          # Empty value is rejected by the action, so omit the secret entirely when unset (fork PRs)
-          secrets: ${{ secrets.DATA_SOURCE_PROXY_URL != '' && format('all_proxy={0}', secrets.DATA_SOURCE_PROXY_URL) || '' }}
+          # Build RUNs share the host network so create-database.sh can reach
+          # the gluetun HTTP proxy published on the runner's localhost
+          allow: network.host
+          network: host
+          build-args: DATA_SOURCE_PROXY=http://127.0.0.1:8888
           push: false
           pull: true
           cache-from: type=gha
