@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y csvkit curl wget && rm -rf /var/lib/apt
 COPY create-database.sh ./create-database.sh
 
 # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
-# downloads go out through a proxy. curl reads ALL_PROXY natively
-RUN --mount=type=secret,id=all_proxy \
-    ALL_PROXY="$(cat /run/secrets/all_proxy 2>/dev/null || true)" bash create-database.sh
+# downloads go out through a proxy (gluetun sidecar in CI). curl reads
+# ALL_PROXY natively; the ARG is scoped to this stage so other stages stay direct
+ARG DATA_SOURCE_PROXY=""
+RUN ALL_PROXY="$DATA_SOURCE_PROXY" bash create-database.sh
 
 # Stage 2: Build Python environment
 FROM ghcr.io/astral-sh/uv:0.12-python3.14-trixie AS builder
