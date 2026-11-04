@@ -2,6 +2,11 @@ name: "Reusable workflow: Create database"
 
 on:
   workflow_call:
+    inputs:
+      max-age-hours:
+        description: Reuse a cached database younger than this many hours, 0 always builds fresh
+        type: number
+        default: 24
     secrets:
       DATA_SOURCE_PROXY_URL:
         description: Proxy for Registrų Centras downloads
@@ -15,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/osgeo/gdal:ubuntu-full-3.13.3
     timeout-minutes: 120
+    concurrency:
+      group: create-database-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: read
     steps:
@@ -24,12 +32,60 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The proxy works from a job container but fails inside docker build (curl exit 97),
-      # so the database is built here and handed to docker build as the database-builder stage
+      - name: Hash database inputs
+        id: hash
+        run: |
+          container=$(grep -E '^[[:space:]]+container:' .github/workflows/reusable-workflow-create-database.yml)
+          [ -n "${container}" ]
+          value=$({ cat create-database.sh; echo "${container}"; } | sha256sum | cut -c1-16)
+          echo "value=${value}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cached database
+        id: cache
+        if: ${{ inputs.max-age-hours > 0 }}
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            boundaries.sqlite
+            data-sources/data-source-checksums.txt
+            database-built-at.txt
+          key: database-${{ steps.hash.outputs.value }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: database-${{ steps.hash.outputs.value }}-
+
+      - name: Check cached database age
+        id: fresh
+        if: ${{ steps.cache.outputs.cache-matched-key != '' }}
+        run: |
+          built_at=$(cat database-built-at.txt 2>/dev/null || echo 0)
+          [[ "${built_at}" =~ ^[0-9]+$ ]] || built_at=0
+          age=$(( $(date -u +%s) - built_at ))
+          echo "Cached database is ${age} seconds old"
+          if [ -s boundaries.sqlite ] && [ -s data-sources/data-source-checksums.txt ] && awk -v age="${age}" -v max="${MAX_AGE_HOURS}" 'BEGIN { exit !(age < max * 3600) }'; then
+            echo "reuse=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          MAX_AGE_HOURS: ${{ inputs.max-age-hours }}
+
+      # The proxy rejects the account after a few full downloads a day (curl exit 97),
+      # so the database is cached and the downloads are shared between runs
       - name: Create database
-        run: chmod +x create-database.sh && ./create-database.sh
+        if: ${{ steps.fresh.outputs.reuse != 'true' }}
+        run: |
+          chmod +x create-database.sh
+          ./create-database.sh
+          date -u +%s > database-built-at.txt
         env:
           ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+
+      - name: Save database to cache
+        if: ${{ steps.fresh.outputs.reuse != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            boundaries.sqlite
+            data-sources/data-source-checksums.txt
+            database-built-at.txt
+          key: database-${{ steps.hash.outputs.value }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload database artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

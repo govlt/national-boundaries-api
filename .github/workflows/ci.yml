@@ -58,6 +58,8 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-workflow-create-database.yml
+    with:
+      max-age-hours: 720
     secrets:
       DATA_SOURCE_PROXY_URL: ${{ secrets.DATA_SOURCE_PROXY_URL }}
 

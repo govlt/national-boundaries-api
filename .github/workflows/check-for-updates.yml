@@ -5,43 +5,48 @@ on:
   schedule:
     - cron: "0 14 * * *"
 
+concurrency: check-for-data-source-updates
+
 jobs:
+  create-database:
+    name: Create database
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-workflow-create-database.yml
+    with:
+      max-age-hours: 0
+    secrets:
+      DATA_SOURCE_PROXY_URL: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+
   check-for-updates:
     name: Check for updates
     runs-on: ubuntu-latest
-    container: ghcr.io/osgeo/gdal:ubuntu-full-3.13.3
-    concurrency: check-for-data-source-updates
-    timeout-minutes: 120
+    timeout-minutes: 30
+    needs:
+      - create-database
     permissions:
       contents: read
     outputs:
       diff: ${{ steps.comparison.outputs.diff }}
     steps:
-      - name: Install csvkit
-        run: apt-get update && apt-get install -y csvkit wget curl
-
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
-      # downloads go out through a proxy. curl reads ALL_PROXY natively
-      - name: Create database
-        run: chmod +x create-database.sh && ./create-database.sh
-        env:
-          ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+      - name: Download database artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: database
+          path: database
 
       - name: Upload data-source-checksums.txt artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: data-source-checksums.txt
-          path: data-sources/data-source-checksums.txt
+          path: database/data-sources/data-source-checksums.txt
           if-no-files-found: error
 
       - name: Upload boundaries.sqlite artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: boundaries.sqlite
-          path: boundaries.sqlite
+          path: database/boundaries.sqlite
           if-no-files-found: error
 
       # A release without assets (failed publish) must not block the next release forever
@@ -62,7 +67,7 @@ jobs:
         run: |
           { 
             echo 'diff<<EOF'
-            (diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :)
+            (diff -u 'published-data-source-checksums.txt' 'database/data-sources/data-source-checksums.txt' || :)
             echo 'EOF'
           } >> "${GITHUB_OUTPUT}"
 
