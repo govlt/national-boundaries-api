@@ -1,0 +1,42 @@
+name: "Reusable workflow: Create database"
+
+on:
+  workflow_call:
+    secrets:
+      DATA_SOURCE_PROXY_URL:
+        description: Proxy for Registrų Centras downloads
+        required: false
+
+permissions: { }
+
+jobs:
+  create-database:
+    name: Create database
+    runs-on: ubuntu-latest
+    container: ghcr.io/osgeo/gdal:ubuntu-full-3.13.3
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Install csvkit
+        run: apt-get update && apt-get install -y csvkit wget curl
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The proxy works from a job container but fails inside docker build (curl exit 97),
+      # so the database is built here and handed to docker build as the database-builder stage
+      - name: Create database
+        run: chmod +x create-database.sh && ./create-database.sh
+        env:
+          ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+
+      - name: Upload database artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: database
+          path: |
+            boundaries.sqlite
+            data-sources/data-source-checksums.txt
+          if-no-files-found: error
+          retention-days: 1
