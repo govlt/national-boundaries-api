@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/osgeo/gdal:ubuntu-full-3.13.3
     timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
     concurrency:
       group: create-database-${{ github.ref }}
       cancel-in-progress: false
