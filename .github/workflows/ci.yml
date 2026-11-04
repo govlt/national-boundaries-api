@@ -90,9 +90,23 @@ jobs:
           build-contexts: database-builder=${{ runner.temp }}/database
           platforms: linux/amd64
           push: false
+          load: true
+          tags: national-boundaries-api:ci
           pull: true
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
+
+      - name: Smoke test docker image
+        run: |
+          docker run -d --name api -p 8080:80 national-boundaries-api:ci
+          trap 'docker logs api | tail -50' ERR
+          for _ in $(seq 1 30); do curl -fs http://localhost:8080/health && break; sleep 2; done
+          docker exec api test -s boundaries.sqlite
+          docker exec api test -s data-source-checksums.txt
+          curl -fsS -X POST http://localhost:8080/v1/counties/search -H 'Content-Type: application/json' -d '{}' | jq -e '.total == 10'
+          curl -fsS -X POST http://localhost:8080/v1/municipalities/search -H 'Content-Type: application/json' -d '{}' | jq -e '.total == 60'
+          curl -fsS -X POST http://localhost:8080/v1/streets/search -H 'Content-Type: application/json' -d '{"filters":[{"residential_areas":{"codes":[31003]}}]}' | jq -e '.total > 1000'
+        shell: bash
 
   generate-redoc:
     name: Generate ReDoc
