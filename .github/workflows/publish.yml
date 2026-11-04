@@ -10,11 +10,21 @@ on:
 permissions: { }
 
 jobs:
+  create-database:
+    name: Create database
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-workflow-create-database.yml
+    secrets:
+      DATA_SOURCE_PROXY_URL: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+
   publish-docker-image:
     name: Publish docker image
     runs-on: ubuntu-latest
     timeout-minutes: 90
     concurrency: publish-docker-image-${{ github.event_name }}
+    needs:
+      - create-database
     permissions:
       contents: write
       packages: write
@@ -28,6 +38,12 @@ jobs:
 
       - name: Setup buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Download database artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: database
+          path: ${{ runner.temp }}/database/opt/database
 
       - name: Set Docker metadata
         id: meta
@@ -57,11 +73,10 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          build-contexts: database-builder=${{ runner.temp }}/database
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
-          # Empty value is rejected by the action, so omit the secret entirely when unset
-          secrets: ${{ secrets.DATA_SOURCE_PROXY_URL != '' && format('all_proxy={0}', secrets.DATA_SOURCE_PROXY_URL) || '' }}
           push: true
           pull: true
           no-cache: true
