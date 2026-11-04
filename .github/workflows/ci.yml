@@ -108,6 +108,7 @@ jobs:
           curl -fsS -X POST http://localhost:8080/v1/counties/search -H 'Content-Type: application/json' -d '{}' | jq -e '.total == 10'
           curl -fsS -X POST http://localhost:8080/v1/municipalities/search -H 'Content-Type: application/json' -d '{}' | jq -e '.total == 60'
           curl -fsS -X POST http://localhost:8080/v1/streets/search -H 'Content-Type: application/json' -d '{"filters":[{"residential_areas":{"codes":[31003]}}]}' | jq -e '.total > 1000'
+          curl -fsS -X POST http://localhost:8080/v1/addresses/search -H 'Content-Type: application/json' -d '{"filters":[{"residential_areas":{"codes":[10049]}}]}' | jq -e '.total > 0 and all(.items[]; .street == null)'
         shell: bash
 
   generate-redoc:
