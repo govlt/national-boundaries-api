@@ -53,10 +53,20 @@ jobs:
           wait-for-processing: true
           category: ruff
 
+  create-database:
+    name: Create database
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-workflow-create-database.yml
+    secrets:
+      DATA_SOURCE_PROXY_URL: ${{ secrets.DATA_SOURCE_PROXY_URL }}
+
   validate-api-docker-build:
     name: Validate if docker image builds
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    needs:
+      - create-database
     permissions:
       contents: read
     steps:
@@ -66,18 +76,37 @@ jobs:
       - name: Setup buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
+      - name: Download database artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: database
+          path: ${{ runner.temp }}/database/opt/database
+
       - name: Build docker image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           file: Dockerfile
+          build-contexts: database-builder=${{ runner.temp }}/database
           platforms: linux/amd64
-          # Empty value is rejected by the action, so omit the secret entirely when unset (fork PRs)
-          secrets: ${{ secrets.DATA_SOURCE_PROXY_URL != '' && format('all_proxy={0}', secrets.DATA_SOURCE_PROXY_URL) || '' }}
           push: false
+          load: true
+          tags: national-boundaries-api:ci
           pull: true
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
+
+      - name: Smoke test docker image
+        run: |
+          docker run -d --name api -p 8080:80 national-boundaries-api:ci
+          trap 'docker logs api | tail -50' ERR
+          for _ in $(seq 1 30); do curl -fs http://localhost:8080/health && break; sleep 2; done
+          docker exec api test -s boundaries.sqlite
+          docker exec api test -s data-source-checksums.txt
+          curl -fsS -X POST http://localhost:8080/v1/counties/search -H 'Content-Type: application/json' -d '{}' | jq -e '.total == 10'
+          curl -fsS -X POST http://localhost:8080/v1/municipalities/search -H 'Content-Type: application/json' -d '{}' | jq -e '.total == 60'
+          curl -fsS -X POST http://localhost:8080/v1/streets/search -H 'Content-Type: application/json' -d '{"filters":[{"residential_areas":{"codes":[31003]}}]}' | jq -e '.total > 1000'
+        shell: bash
 
   generate-redoc:
     name: Generate ReDoc
@@ -99,7 +128,7 @@ jobs:
         run: uv run python src/extract-openapi.py src.main:app --out openapi.yaml
 
       - name: Generate ReDoc html
-        run: npx @redocly/cli build-docs openapi.yaml --theme.openapi.jsonSampleExpandLevel all
+        run: npx @redocly/cli@2.73.0 build-docs openapi.yaml --openapi.jsonSampleExpandLevel all
 
       - name: Upload openapi.yaml artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

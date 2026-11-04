@@ -44,8 +44,11 @@ jobs:
           path: boundaries.sqlite
           if-no-files-found: error
 
+      # A release without assets (failed publish) must not block the next release forever
       - name: Download latest data source hashes
-        run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt"
+        run: |
+          status=$(curl -sSL -o published-data-source-checksums.txt -w '%{http_code}' "https://github.com/govlt/national-boundaries-api/releases/latest/download/data-source-checksums.txt")
+          if [ "$status" = 404 ]; then : > published-data-source-checksums.txt; elif [ "$status" != 200 ]; then exit 1; fi
 
       - name: Upload published-data-source-checksums.txt artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
