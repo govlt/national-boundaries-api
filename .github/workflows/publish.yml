@@ -24,28 +24,59 @@ jobs:
       digest: ${{ steps.docker.outputs.digest }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Set Docker metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/govlt/national-boundaries-api
+          # latest=false, otherwise type=ref,event=tag moves latest onto prerelease tags too
+          flavor: latest=false
+          tags: |
+            type=ref,event=tag,priority=400
+            type=semver,pattern={{major}}.{{minor}},priority=390
+            type=semver,pattern={{major}},priority=380
+            type=raw,value=${{ (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'pre')) && 'stable' || 'preview' }},priority=300
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'pre') }},priority=200
+            type=raw,value={{branch}},enable={{is_default_branch}},priority=100
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
       - name: Build, tag & push docker image
-        uses: AplinkosMinisterija/reusable-workflows/.github/actions/docker-build-tag-push@main
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         id: docker
         with:
-          docker-image: ghcr.io/govlt/national-boundaries-api
-          environment: ${{ (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'pre')) && 'stable' || 'preview' }}
-          no-cache: true
+          context: .
+          file: Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          # Empty value is rejected by the action, so omit the secret entirely when unset
+          secrets: ${{ secrets.DATA_SOURCE_PROXY_URL != '' && format('all_proxy={0}', secrets.DATA_SOURCE_PROXY_URL) || '' }}
           push: true
-          cache-from: ''
-          cache-to: ''
+          pull: true
+          no-cache: true
+          provenance: false
+          sbom: false
 
       - name: Generate docker image attestation
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ghcr.io/govlt/national-boundaries-api
           subject-digest: ${{ steps.docker.outputs.digest }}
           push-to-registry: true
 
       - name: Extract files from Docker image
-        uses: shrink/actions-docker-extract@v3
+        uses: shrink/actions-docker-extract@f1ef61065b78731fe3310b4e84e511f6a927a77e # v4.0.0
         id: extract
         with:
           image: ghcr.io/govlt/national-boundaries-api@${{ steps.docker.outputs.digest }}
@@ -53,21 +84,21 @@ jobs:
           destination: app
 
       - name: Upload boundaries.sqlite artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: boundaries.sqlite
           path: app/boundaries.sqlite
           if-no-files-found: error
 
       - name: Upload data-source-checksums.txt artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: data-source-checksums.txt
           path: app/data-source-checksums.txt
           if-no-files-found: error
 
       - name: Upload artifacts to GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           make_latest: ${{ contains(github.ref, 'pre') && 'false' ||  'true' }}

@@ -19,6 +19,18 @@ addresses, rooms and parcels.
 8. **Completely Open Source and Free**: Join our community of contributors and users. The entire project is open-source
    and free of restrictions..
 
+## Data Hierarchy
+
+The API organizes data into the following administrative and address levels:
+
+1. **Counties** (Apskritys)
+2. **Municipalities** (Savivaldybės)
+3. **Elderships** (Seniūnijos)
+4. **Residential Areas** (Gyvenamosios vietovės)
+5. **Streets** (Gatvės)
+6. **Addresses** (Adresai)
+7. **Rooms/Parcels** (Patalpos ir sklypai)
+
 ## Self-hosting
 
 Host National Boundaries and Addresses API of Lithuania on your own infrastructure.
@@ -51,6 +63,7 @@ Additional docker image environment options:
 | `SENTRY_ENVIRONMENT` | Specifies the environment for Sentry (e.g., production, staging, development).                                                                                                                                                                                               | `production`  |
 | `ROOT_URL`           | The root URL of the application. Only change if the application is mounted below a specific URL path.                                                                                                                                                                        |               |
 | `WORKERS`            | The number of Uvicorn worker processes to run. Adjust based on workload and available resources. If you have a cluster of machines with Kubernetes, Docker Swarm, or another similar system, handle replication at the cluster level and keep a single worker per container. | `1`           |
+| `SQL_ECHO`           | Log every SQL statement and connection pool event to stdout. Useful when debugging queries, but costly under load, so it is off by default. Set to `1`, `true` or `yes` to enable.                                                                                          |               |
 
 ### SQLite Database
 
@@ -62,25 +75,25 @@ version [here](https://github.com/govlt/national-boundaries-api/releases/latest/
 
 ```mermaid
 flowchart TD
-    ar["State Enterprise Centre of Registers\n<a href="https://www.registrucentras.lt/p/1187">Address Registry raw data</a>"]-->transform["<a href="https://github.com/govlt/national-boundaries-api/blob/main/create-database.sh">Create SQLite database</a>"]-->|"<a href="https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite">boundaries.sqlite</a>"|docker-image
+    ar["State Enterprise Centre of Registers<br><a href="https://www.registrucentras.lt/p/1187">Address Registry raw data</a>"]-->transform["<a href="https://github.com/govlt/national-boundaries-api/blob/main/create-database.sh">Create SQLite database</a>"]-->|"<a href="https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite">boundaries.sqlite</a>"|docker-image
 
-docker-image["Docker image\n<a href="https://github.com/govlt/national-boundaries-api/pkgs/container/national-boundaries-api">national-boundaries-api</a>"]
+docker-image["Docker image<br><a href="https://github.com/govlt/national-boundaries-api/pkgs/container/national-boundaries-api">national-boundaries-api</a>"]
 ```
 
 ## Getting Started Development
 
 To embark on your development journey, follow these simple steps:
 
-- **Install Python 3.12+:** [Download Python](https://www.python.org/downloads/)
-- **Install Poetry 1.8+:** [Download Poetry](https://python-poetry.org/docs/#installation)
+- **Install Python 3.14+:** [Download Python](https://www.python.org/downloads/)
+- **Install uv 0.12+:** [Download uv](https://docs.astral.sh/uv/)
 - **Install SpatialLite 5+**: [Download SpatialLite](https://www.gaia-gis.it/fossil/libspatialite/index)
-- **Install GDAL 3.9+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
+- **Install GDAL 3.13+:** [Download GDAL](https://gdal.org/download.html) (Needed only for building the SQLite file on
   your computer)
 
 ### Setup
 
 1. Set up a Python virtual environment.
-2. Install dependencies with Poetry.
+2. Install dependencies with uv.
 3. Create the database by running `create-database.sh` or download the database file
    from [this link](https://github.com/govlt/national-boundaries-api/releases/latest/download/boundaries.sqlite) and
    place it in the project root directory.
@@ -90,7 +103,7 @@ To embark on your development journey, follow these simple steps:
 Execute the following command, replacing `SPATIALITE_LIBRARY_PATH` with the path to SpatialLite on your computer:
 
 ```shell
-SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" poetry run python -m uvicorn src.main:app --reload
+SPATIALITE_LIBRARY_PATH="mod_spatialite.dylib" uv run python -m uvicorn src.main:app --reload
 ```
 
 ## License

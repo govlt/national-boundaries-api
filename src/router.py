@@ -70,7 +70,7 @@ def create_boundaries_router(
     def get_by_code(
             code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
-                example=example_code
+                examples=[example_code]
             ),
             db: Session = Depends(database.get_db),
             service: services.BaseBoundariesService = Depends(service_class),
@@ -98,7 +98,7 @@ def create_boundaries_router(
     def get_with_geometry(
             code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
-                example=example_code
+                examples=[example_code]
             ),
             db: Session = Depends(database.get_db),
             srid: int = constants.query_srid,

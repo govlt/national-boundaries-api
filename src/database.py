@@ -1,4 +1,4 @@
-from typing import Optional
+import os
 
 import geoalchemy2
 import sqlean
@@ -15,11 +15,14 @@ def _connect():
     return conn
 
 
+# Logging every statement and pool event is expensive under load, so it is opt-in.
+_echo_sql = os.environ.get("SQL_ECHO", "").lower() in ("1", "true", "yes")
+
 engine = create_engine(
     "sqlite://",
     creator=_connect,
-    echo=True,
-    echo_pool=True,
+    echo=_echo_sql,
+    echo_pool=_echo_sql,
     poolclass=NullPool,
 )
 session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -53,17 +56,15 @@ class GeomFromEWKB(GenericFunction):
 
 
 class EWKTGeometry(Geometry):
-    # We need to override constructor only to set extended to True
-    def __init__(self, geometry_type: Optional[str] = "GEOMETRY", srid=-1, dimension=2, spatial_index=True,
-                 use_N_D_index=False, use_typmod: Optional[bool] = None, from_text: Optional[str] = None,
-                 name: Optional[str] = None, nullable=True, _spatial_index_reflected=None) -> None:
-        super().__init__(geometry_type, srid, dimension, spatial_index, use_N_D_index, use_typmod, from_text, name,
-                         nullable, _spatial_index_reflected)
-        self.extended = True
-
     name = "geometry"
     from_text = 'ST_GeomFromEWKT'
     as_binary = 'AsEWKT'
     ElementType = WKTElement
 
     cache_ok = False
+
+    # We need to override the constructor only to set extended to True. Forwarding *args/**kwargs
+    # keeps this working across GeoAlchemy2 releases instead of restating its signature.
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.extended = True

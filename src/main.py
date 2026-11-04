@@ -18,6 +18,9 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     )
 
 app = FastAPI(
+    # FastAPI 0.132 made this True by default, which rejects JSON bodies sent without a
+    # Content-Type header. Existing clients rely on being able to omit it, so keep it off.
+    strict_content_type=False,
     title="National Boundaries and Addresses API of Lithuania",
     summary="Access comprehensive data on national boundaries and addresses registered in the Republic of Lithuania",
     description='This API provides detailed information and geometries about counties, municipalities, elderships, '
